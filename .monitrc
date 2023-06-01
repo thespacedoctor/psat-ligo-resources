@@ -54,6 +54,12 @@ check process gocart with pidfile  /home/ligo/.config/gocart/daemon.pid
   else if succeeded for 1 cycle 
     then exec "/home/ligo/monit/monit2slack.rb --status started --event 'gocart has been started'"
 
+check program lvk_map_pixels_to_db with path "/home/ligo/anaconda3/envs/gocart/bin/python /home/ligo/psat-ligo-resources/lvk_map_pixels_to_db.py" 
+   with timeout 1200 seconds
+   EVERY 20 CYCLES
+   if status > 0 for 2 times within 3 cycles then exec "/home/ligo/monit/monit2slack.rb --status error --event 'lvk_map_pixels_to_db failed'"
+   else if succeeded then exec "/home/ligo/monit/monit2slack.rb --status ok --event 'lvk_map_pixels_to_db command is now passing again'"
+
 check program lvk_exp_import with path "/home/ligo/anaconda3/envs/gocart/bin/python /home/ligo/psat-ligo-resources/lvk_atlas_panstarrs_exposures_to_database.py /home/ligo/coverage" 
    with timeout 1200 seconds
    EVERY 60 CYCLES
