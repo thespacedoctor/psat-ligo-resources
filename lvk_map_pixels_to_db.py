@@ -89,8 +89,8 @@ def list_maps_to_be_imported(
       `ipix` int(11) DEFAULT NULL,
       `cumprob` double DEFAULT NULL,
       `prob` double DEFAULT NULL,
-      `ext_ps_id` BIGINT(11) DEFAULT NULL,
-      `ext_atlas_id` BIGINT(11) DEFAULT NULL,
+      `exp_ps_id` BIGINT(11) DEFAULT NULL,
+      `exp_atlas_id` BIGINT(11) DEFAULT NULL,
       UNIQUE KEY `mapid_ipix` (`mapId`,`ipix`)
     ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
     """

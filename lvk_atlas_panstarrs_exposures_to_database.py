@@ -203,6 +203,7 @@ def create_tables_if_not_exist(
       `limiting_magnitude` double(6,3) DEFAULT NULL,
       `dateCreated` datetime DEFAULT current_timestamp(),
       `dateLastModified` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+      `processed` TINYINT(1) NULL DEFAULT 0,
       PRIMARY KEY (`primaryId`),
       UNIQUE KEY `expname` (`expname`)
     ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
@@ -224,6 +225,7 @@ def create_tables_if_not_exist(
       `skycell` varchar(20) DEFAULT NULL,
       `dateCreated` datetime DEFAULT current_timestamp(),
       `dateLastModified` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+      `processed` TINYINT(1) NULL DEFAULT 0,
       PRIMARY KEY (`primaryId`),
       UNIQUE KEY `imageid_skycell` (`imageid`,`skycell`)
     ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
