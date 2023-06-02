@@ -65,3 +65,10 @@ check program lvk_exp_import with path "/home/ligo/anaconda3/envs/gocart/bin/pyt
    EVERY 60 CYCLES
    if status > 0 for 2 times within 3 cycles then exec "/home/ligo/monit/monit2slack.rb --status error --event 'lvk_exp_import failed'"
    else if succeeded then exec "/home/ligo/monit/monit2slack.rb --status ok --event 'lvk_exp_import command is now passing again'"
+
+check program lvk_match_exposures_to_maps with path "/home/ligo/anaconda3/envs/gocart/bin/python /home/ligo/psat-ligo-resources/lvk_match_exposures_to_maps.py" 
+   with timeout 1200 seconds
+   EVERY 60 CYCLES
+   if status > 0 for 2 times within 3 cycles then exec "/home/ligo/monit/monit2slack.rb --status error --event 'lvk_match_exposures_to_maps failed'"
+   else if succeeded then exec "/home/ligo/monit/monit2slack.rb --status ok --event 'lvk_match_exposures_to_maps command is now passing again'"
+
