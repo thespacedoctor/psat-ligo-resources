@@ -47,7 +47,7 @@ check system $HOST
 check process gocart with pidfile  /home/ligo/.config/gocart/daemon.pid
   start program = "/home/ligo/anaconda3/envs/gocart/bin/gocart -p listen" with timeout 60 seconds
   stop program  = "/home/ligo/anaconda3/envs/gocart/bin/gocart quit"
-  restart program  = "/home/ligo/anaconda3/envs/gocart/bin/gocart restart"
+  restart program  = "/home/ligo/anaconda3/envs/gocart/bin/gocart -p restart"
   if does not exist then restart
   if does not exist for 1 cycle
     then exec "/home/ligo/monit/monit2slack.rb --status warning --event 'gocart is not running'"
