@@ -71,8 +71,8 @@ def main(arguments=None):
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for mmap in maps:
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=7)
-        match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
-        match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4)
+        match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps[0:2], mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
+        # match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4)
 
     sqlQuery = f"""update exp_atlas set processed = 1 where processed = 0"""
     writequery(
@@ -135,7 +135,7 @@ def calulate_exposure_healpix_ids(
     # RETURN ALL HEALPIXELS IN EXPOSURE AREA
     try:
         series["ipixs"] = hp.query_polygon(nside, np.array(
-            corners))
+            corners), nest=True)
     except:
         pass
 
@@ -245,6 +245,11 @@ def match_exp_to_map_pixels(
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
+
+    from tabulate import tabulate
+    print(tabulate(exps, headers='keys', tablefmt='psql'))
+
+    sys.exit(0)
 
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
     for index, row in exps.iterrows():
