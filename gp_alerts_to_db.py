@@ -13,6 +13,12 @@ database settings:
     password: mypass
 ```
 
+You will also need this installs:
+
+```bash
+conda install unicodecsv pymysql -c conda-forge
+```
+
 :Author:
     David Young
 
@@ -33,6 +39,9 @@ import sys
 import os
 from fundamentals import tools
 from fundamentals.mysql import writequery
+from fundamentals.mysql import readquery
+from fundamentals.renderer import list_of_dictionaries
+from datetime import datetime, date, time
 
 
 def plugin(
@@ -110,44 +119,40 @@ def plugin(
             alertDict["map"] = f
 
     sqlQuery = f"""CREATE TABLE IF NOT EXISTS `alerts` (
-          `primaryId` bigint(11) NOT NULL AUTO_INCREMENT,
-          `superevent_id` varchar(20) NOT NULL,
-          `significant` tinyint(4) DEFAULT NULL,
-          `alert_type` varchar(20) DEFAULT NULL,
-          `alert_time` datetime DEFAULT NULL,
-          `alert_delta_sec` int(11) DEFAULT NULL,
-          `date_obs` datetime DEFAULT NULL COMMENT 'original keyword: date-obs',
-          `mjd_obs` double DEFAULT NULL COMMENT 'original keyword: mjd-obs',
-          `far_hz` double DEFAULT NULL,
-          `far_years` double DEFAULT NULL,
-          `distmean` double DEFAULT NULL,
-          `diststd` double DEFAULT NULL,
-          `class_bbh` double DEFAULT NULL,
-          `class_bns` double DEFAULT NULL,
-          `class_nsbh` double DEFAULT NULL,
-          `class_terrestrial` double DEFAULT NULL,
-          `prop_hasns` double DEFAULT NULL,
-          `prop_hasremnant` double DEFAULT NULL,
-          `prop_hasmassgap` double DEFAULT NULL,
-          `area10` double DEFAULT NULL,
-          `area50` double DEFAULT NULL,
-          `area90` double DEFAULT NULL,
-          `creator` varchar(30) DEFAULT NULL,
-          `ra_centre` double DEFAULT NULL,
-          `dec_centre` double DEFAULT NULL,
-          `group` varchar(100) DEFAULT NULL,
-          `logbci` double DEFAULT NULL,
-          `logbsn` double DEFAULT NULL,
-          `pipeline` varchar(100) DEFAULT NULL,
-          `search` varchar(100) DEFAULT NULL,
-          `map` varchar(400) DEFAULT NULL,
-          `dateAdded` datetime DEFAULT CURRENT_TIMESTAMP,
-          `dateLastModified` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-          `central_frequency` double DEFAULT NULL,
-          `duration` double DEFAULT NULL,
-          PRIMARY KEY (`primaryId`),
-          UNIQUE KEY `superevent_id_alert_time_alert_type` (`superevent_id`,`alert_time`,`alert_type`)
-        ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4;
+      `superevent_id` varchar(20) NOT NULL,
+      `significant` tinyint(4)  DEFAULT NULL,
+      `alert_type` varchar(20) DEFAULT NULL,
+      `alert_time` datetime DEFAULT NULL,
+      `alert_delta_sec` int(11) DEFAULT NULL,
+      `date_obs` datetime DEFAULT NULL COMMENT 'original keyword: date-obs',
+      `mjd_obs` double DEFAULT NULL COMMENT 'original keyword: mjd-obs',
+      `far_hz` double DEFAULT NULL,
+      `far_years` double DEFAULT NULL,
+      `distmean` double DEFAULT NULL,
+      `diststd` double DEFAULT NULL,
+      `class_bbh` double DEFAULT NULL,
+      `class_bns` double DEFAULT NULL,
+      `class_nsbh` double DEFAULT NULL,
+      `class_terrestrial` double DEFAULT NULL,
+      `prop_hasns` double DEFAULT NULL,
+      `prop_hasremnant` double DEFAULT NULL,
+      `prop_hasmassgap` double DEFAULT NULL,
+      `area10` double DEFAULT NULL,
+      `area50` double DEFAULT NULL,
+      `area90` double DEFAULT NULL,
+      `creator` varchar(30) DEFAULT NULL,
+      `ra_centre` double DEFAULT NULL,
+      `dec_centre` double DEFAULT NULL,
+      `group` varchar(100) DEFAULT NULL,
+      `logbci` double DEFAULT NULL,
+      `logbsn` double DEFAULT NULL,
+      `pipeline` varchar(100) DEFAULT NULL,
+      `search` varchar(100) DEFAULT NULL,
+      `map` varchar(400) DEFAULT NULL,
+      `dateAdded` datetime DEFAULT current_timestamp(),
+      `dateLastModified` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+      UNIQUE KEY `superevent_id_alert_time_alert_type` (`superevent_id`,`alert_time`, `alert_type`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
     """
     writequery(
         log=log,
@@ -225,8 +230,112 @@ def plugin(
         replace=True,
     )
 
+    export_alerts_table_to_csv(log=log, dbConn=dbConn, settings=settings)
+
     log.debug('completed the ``plugin`` function')
     return None
+
+
+def export_alerts_table_to_csv(
+        log,
+        dbConn,
+        settings):
+    """*export the alerts table and events view to CSV files*
+
+        **Key Arguments:**
+
+        - `dbConn` -- mysql database connection
+        - `log` -- logger
+
+        **Usage:**
+
+        ```eval_rst
+        .. todo::
+
+                add usage info
+                create a sublime snippet for usage
+        ```
+
+        ```python
+        usage code 
+        ```           
+        """
+    log.debug('starting the ``export_alerts_table_to_csv`` function')
+
+    now = datetime.now()
+    now = now.strftime("%Y-%m-%d %H:%M:%S")
+
+    for ttype in ['parse_mock_events', 'parse_real_events']:
+        if not settings['lvk'][ttype]:
+            continue
+        else:
+            pass
+
+        if 'mock' in ttype:
+            ddir = "mockevents"
+            prefix = "M"
+        else:
+            ddir = "superevents"
+            prefix = "S"
+
+        alertCsvPath = settings['lvk']['download_dir'] + f"/{ddir}/alerts.csv"
+        eventsCsvPath = settings['lvk']['download_dir'] + f"/{ddir}/events.csv"
+
+        # EVENTS VIEW EXPORT
+        sqlQuery = f"""
+            select * from events where superevent_id like "{prefix}%";
+        """
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn,
+            quiet=False
+        )
+        dataSet = list_of_dictionaries(
+            log=log,
+            listOfDictionaries=rows
+        )
+        csvData = dataSet.csv(filepath=None)
+        tableData = dataSet.table(filepath=None)
+        csvData = f"# Exported {now}\n" + csvData
+        tableData = f"# Exported {now}\n" + tableData
+        myFile = open(eventsCsvPath, 'w')
+        myFile.write(csvData)
+        myFile.close()
+        myFile = open(eventsCsvPath.replace(".csv", ".txt"), 'w')
+        myFile.write(tableData)
+        myFile.close()
+
+        # ALERTS TABLE EXPORT
+        sqlQuery = f"""
+            select * from alerts where superevent_id like "{prefix}%" order by alert_time desc;
+        """
+        rows = readquery(
+            log=log,
+            sqlQuery=sqlQuery,
+            dbConn=dbConn,
+            quiet=False
+        )
+        dataSet = list_of_dictionaries(
+            log=log,
+            listOfDictionaries=rows
+        )
+        csvData = dataSet.csv(filepath=None)
+        tableData = dataSet.table(filepath=None)
+        csvData = f"# Exported {now}\n" + csvData
+        tableData = f"# Exported {now}\n" + tableData
+        myFile = open(alertCsvPath, 'w')
+        myFile.write(csvData)
+        myFile.close()
+        myFile = open(alertCsvPath.replace(".csv", ".txt"), 'w')
+        myFile.write(tableData)
+        myFile.close()
+
+    log.debug('completed the ``export_alerts_table_to_csv`` function')
+    return None
+
+# use the tab-trigger below for new function
+# xt-def-function
 
 
 # DO NOT EDIT ANYTHING BOTH THIS LINE
