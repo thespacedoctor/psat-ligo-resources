@@ -85,7 +85,7 @@ def plugin(
             if not isinstance(v, dict):
                 alertDict[k.lower()] = v
         alertDict["ra_centre"] = alertMeta["EXTRA"]['central coordinate']["equatorial"].split()[0]
-        alertDict["dec_centre"] = alertMeta["EXTRA"]['central coordinate']["equatorial"].split()[0]
+        alertDict["dec_centre"] = alertMeta["EXTRA"]['central coordinate']["equatorial"].split()[1]
 
     if "HEADER" in alertMeta and alertMeta["HEADER"]:
         allowList = ["CREATOR", "DATE-OBS", "DISTMEAN", "DISTSTD", "LOGBCI", "LOGBSN", "MJD-OBS"]
