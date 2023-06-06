@@ -96,6 +96,7 @@ def main(arguments=None):
             raDeg = -raDeg + 180
             if raDeg > 180.:
                 raDeg -= 360
+            raDeg = -raDeg
             decDeg = e['decDeg']
 
             deltaDeg = pointingSide / 2
@@ -133,7 +134,9 @@ def main(arguments=None):
             settings=settings,
             plotName="atlas_coverage.png",
             meta=meta,
-            patches=atlasPatches
+            patches=atlasPatches,
+            patchesColor="#d33682",
+            patchesLabel=" ATLAS Exposure"
         )
         converter.convert()
 
@@ -195,7 +198,7 @@ def get_atlas_exposures_covering_map(
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
-        select e.raDeg, e.decDeg from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id
+        select distinct e.raDeg, e.decDeg from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id
     """
     atlasExps = readquery(
         log=log,
@@ -203,8 +206,6 @@ def get_atlas_exposures_covering_map(
         dbConn=dbConn,
         quiet=False
     )
-
-    print(sqlQuery)
 
     log.debug('completed the ``get_atlas_exposures_covering_map`` function')
     return atlasExps
