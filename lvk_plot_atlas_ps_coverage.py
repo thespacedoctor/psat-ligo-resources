@@ -145,8 +145,7 @@ def list_maps_to_be_plotted(
     sqlQuery = f"""
         select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1 {extra};
     """
-    print(sqlQuery)
-    sys.exit(0)
+
     maps = readquery(
         log=log,
         sqlQuery=sqlQuery,
