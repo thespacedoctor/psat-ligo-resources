@@ -60,7 +60,7 @@ def plugin(
         os.makedirs(hs)
 
     # IS THE EVENT SIGNIFICANT?
-    if 'event' in alertMeta['ALERT']:
+    if 'event' in alertMeta['ALERT'] and alertMeta['ALERT']['event']:
         if "significant" in alertMeta['ALERT']['event']:
             if alertMeta['ALERT']['event']["significant"]:
                 dest = hs + "/" + basename
