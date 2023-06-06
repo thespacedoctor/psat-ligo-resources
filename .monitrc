@@ -72,3 +72,9 @@ check program lvk_match_exposures_to_maps with path "/home/ligo/anaconda3/envs/g
    if status > 0 for 2 times within 3 cycles then exec "/home/ligo/monit/monit2slack.rb --status error --event 'lvk_match_exposures_to_maps failed'"
    else if succeeded then exec "/home/ligo/monit/monit2slack.rb --status ok --event 'lvk_match_exposures_to_maps command is now passing again'"
 
+check program lvk_plot_atlas_ps_coverage with path "/home/ligo/anaconda3/envs/gocart/bin/python /home/ligo/psat-ligo-resources/lvk_plot_atlas_ps_coverage.py 21" 
+   with timeout 1200 seconds
+   EVERY 30 CYCLES
+   if status > 0 for 2 times within 3 cycles then exec "/home/ligo/monit/monit2slack.rb --status error --event 'lvk_plot_atlas_ps_coverage failed'"
+   else if succeeded then exec "/home/ligo/monit/monit2slack.rb --status ok --event 'lvk_plot_atlas_ps_coverage command is now passing again'"
+
