@@ -18,9 +18,10 @@ conda install pymysql -c conda-forge
 You will also need to add database credientials to the gocart.yaml file.
 
 Usage:
-    lvk_plot_atlas_ps_coverage 
+    lvk_plot_atlas_ps_coverage [<daysAgo>]
 
 Options:
+    <daysAgo>               only replot events from last N days
 
     -h, --help            show this help message
     -v, --version         show version
@@ -38,6 +39,8 @@ import yaml
 import matplotlib.path as mpath
 import matplotlib.patches as patches
 from gocart.convert import aitoff
+from astropy.time import Time
+from datetime import datetime
 
 
 def main(arguments=None):
@@ -71,7 +74,7 @@ def main(arguments=None):
         log.debug('%s = %s' % (varname, val,))
 
     nside = 128
-    maps = list_maps_to_be_plotted(dbConn=dbConn, log=log)
+    maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"])
 
     for mmap in maps:
         atlasExps = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"])
@@ -121,7 +124,8 @@ def main(arguments=None):
 
 def list_maps_to_be_plotted(
         dbConn,
-        log):
+        log,
+        daysAgo=False):
     """*Generate a list of maps needing maps to be plotted*
 
     **Key Arguments:**
@@ -131,10 +135,18 @@ def list_maps_to_be_plotted(
     """
     log.debug('starting the ``list_maps_to_be_plotted`` function')
 
+    extra = ""
+    if daysAgo:
+        utcnow = datetime.utcnow()
+        mjdnow = Time([utcnow], scale='utc').mjd[0]
+        extra = f"and mjd_obs > {mjdnow} - {daysAgo}"
+
     from fundamentals.mysql import readquery
     sqlQuery = f"""
-        select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1;
+        select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1 {extra};
     """
+    print(sqlQuery)
+    sys.exit(0)
     maps = readquery(
         log=log,
         sqlQuery=sqlQuery,
