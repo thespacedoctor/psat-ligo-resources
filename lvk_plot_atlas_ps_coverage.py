@@ -18,7 +18,7 @@ conda install pymysql -c conda-forge
 You will also need to add database credientials to the gocart.yaml file.
 
 Usage:
-    lvk_match_exposures_to_maps 
+    lvk_plot_atlas_ps_coverage 
 
 Options:
 
@@ -35,11 +35,14 @@ import healpy as hp
 import numpy as np
 from fundamentals.mysql import writequery
 import yaml
+import matplotlib.path as mpath
+import matplotlib.patches as patches
+from gocart.convert import aitoff
 
 
 def main(arguments=None):
     """
-    *The main function used when ``lvk_map_pixels_to_db.py`` is run as a single script from the cl*
+    *The main function used when ``lvk_plot_atlas_ps_coverage.py`` is run as a single script from the cl*
     """
 
     # SETUP THE COMMAND-LINE UTIL SETTINGS
@@ -72,6 +75,7 @@ def main(arguments=None):
 
     for mmap in maps:
         atlasExps = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"])
+        psExps = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"])
 
         outputFolder = os.path.dirname(mmap["map"])
 
@@ -83,50 +87,9 @@ def main(arguments=None):
         except:
             meta = {}
 
-        pointingSide = 0.4
-        pointingSide = 5.46
+        atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
+        psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
 
-        import matplotlib.path as mpath
-        import matplotlib.patches as patches
-
-        atlasPatches = []
-        for e in atlasExps:
-
-            raDeg = e['raDeg']
-            raDeg = -raDeg + 180
-            if raDeg > 180.:
-                raDeg -= 360
-            raDeg = -raDeg
-            decDeg = e['decDeg']
-
-            deltaDeg = pointingSide / 2
-            if decDeg < 0:
-                deltaDeg = -deltaDeg
-
-            widthRadTop = np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg + deltaDeg))
-            widthRadBottom = np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg - deltaDeg))
-            heightRad = np.deg2rad(pointingSide)
-            llx = -(np.deg2rad(raDeg) - widthRadBottom / 2)
-            lly = np.deg2rad(decDeg) - (heightRad / 2)
-            ulx = -(np.deg2rad(raDeg) - widthRadTop / 2)
-            uly = np.deg2rad(decDeg) + (heightRad / 2)
-            urx = -(np.deg2rad(raDeg) + widthRadTop / 2)
-            ury = uly
-            lrx = -(np.deg2rad(raDeg) + widthRadBottom / 2)
-            lry = lly
-            Path = mpath.Path
-            path_data = [
-                (Path.MOVETO, [llx, lly]),
-                (Path.LINETO, [ulx, uly]),
-                (Path.LINETO, [urx, ury]),
-                (Path.LINETO, [lrx, lry]),
-                (Path.CLOSEPOLY, [llx, lly])
-            ]
-            codes, verts = zip(*path_data)
-            path = mpath.Path(verts, codes)
-            atlasPatches.append(patches.PathPatch(path))
-
-        from gocart.convert import aitoff
         converter = aitoff(
             log=log,
             mapPath=mmap["map"],
@@ -137,6 +100,19 @@ def main(arguments=None):
             patches=atlasPatches,
             patchesColor="#d33682",
             patchesLabel=" ATLAS Exposure"
+        )
+        converter.convert()
+
+        converter = aitoff(
+            log=log,
+            mapPath=mmap["map"],
+            outputFolder=outputFolder,
+            settings=settings,
+            plotName="ps_coverage.png",
+            meta=meta,
+            patches=psPatches,
+            patchesColor="#859900",
+            patchesLabel="PanSTARRS Skycell"
         )
         converter.convert()
 
@@ -174,25 +150,13 @@ def get_atlas_exposures_covering_map(
         log,
         dbConn,
         mapId):
-    """*get all of the atlas exposures covering map*
+    """*Get all of the atlas exposures covering map*
 
     **Key Arguments:**
 
-    - `dbConn` -- mysql database connection
     - `log` -- logger
-
-    **Usage:**
-
-    ```eval_rst
-    .. todo::
-
-            add usage info
-            create a sublime snippet for usage
-    ```
-
-    ```python
-    usage code 
-    ```           
+    - `dbConn` -- mysql database connection
+    - `mapId` -- the primaryId of the map in database     
     """
     log.debug('starting the ``get_atlas_exposures_covering_map`` function')
 
@@ -210,8 +174,89 @@ def get_atlas_exposures_covering_map(
     log.debug('completed the ``get_atlas_exposures_covering_map`` function')
     return atlasExps
 
-# use the tab-trigger below for new function
-# xt-def-function
+
+def get_ps_skycells_covering_map(
+        log,
+        dbConn,
+        mapId):
+    """*Get all of the panstarrs skycells covering map*
+
+    **Key Arguments:**
+
+    - `log` -- logger
+    - `dbConn` -- mysql database connection
+    - `mapId` -- the primaryId of the map in database          
+    """
+    log.debug('starting the ``get_ps_skycells_covering_map`` function')
+
+    from fundamentals.mysql import readquery
+    sqlQuery = f"""
+        select distinct raDeg, decDeg from exp_ps e, ps1_skycell_map s,alert_pixels_128 p  where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId};
+    """
+    atlasExps = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
+    )
+
+    log.debug('completed the ``get_ps_skycells_covering_map`` function')
+    return atlasExps
+
+
+def get_patches(
+        log,
+        exposures,
+        pointingSide):
+    """*Convert the exposures/skycells to matplotlib patches to be added to the plot*
+
+    **Key Arguments:**
+
+    - `log` -- logger
+    - `exposures` -- atlas or panstarrs exposures or skycells
+    - `pointingSide` -- the pointing side in degrees        
+    """
+    log.debug('starting the ``get_patches`` function')
+
+    expPatches = []
+    for e in exposures:
+
+        raDeg = e['raDeg']
+        raDeg = -raDeg + 180
+        if raDeg > 180.:
+            raDeg -= 360
+        raDeg = -raDeg
+        decDeg = e['decDeg']
+
+        deltaDeg = pointingSide / 2
+        if decDeg < 0:
+            deltaDeg = -deltaDeg
+
+        widthRadTop = np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg + deltaDeg))
+        widthRadBottom = np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg - deltaDeg))
+        heightRad = np.deg2rad(pointingSide)
+        llx = -(np.deg2rad(raDeg) - widthRadBottom / 2)
+        lly = np.deg2rad(decDeg) - (heightRad / 2)
+        ulx = -(np.deg2rad(raDeg) - widthRadTop / 2)
+        uly = np.deg2rad(decDeg) + (heightRad / 2)
+        urx = -(np.deg2rad(raDeg) + widthRadTop / 2)
+        ury = uly
+        lrx = -(np.deg2rad(raDeg) + widthRadBottom / 2)
+        lry = lly
+        Path = mpath.Path
+        path_data = [
+            (Path.MOVETO, [llx, lly]),
+            (Path.LINETO, [ulx, uly]),
+            (Path.LINETO, [urx, ury]),
+            (Path.LINETO, [lrx, lry]),
+            (Path.CLOSEPOLY, [llx, lly])
+        ]
+        codes, verts = zip(*path_data)
+        path = mpath.Path(verts, codes)
+        expPatches.append(patches.PathPatch(path))
+
+    log.debug('completed the ``get_patches`` function')
+    return expPatches
 
 
 if __name__ == '__main__':
