@@ -77,47 +77,49 @@ def main(arguments=None):
     maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"])
 
     for mmap in maps:
-        atlasExps = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"])
-        psExps = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"])
+        mapMjd = mmap["mjd_obs"]
+        for rangeDays in [1, 3, 7]:
+            atlasExps = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdUpper=mapMjd + rangeDays)
+            psExps = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdUpper=mapMjd + rangeDays)
 
-        outputFolder = os.path.dirname(mmap["map"])
+            outputFolder = os.path.dirname(mmap["map"])
 
-        # GRAB META
-        try:
-            yamlFilePath = outputFolder + "/meta.yaml"
-            with open(yamlFilePath, 'r') as stream:
-                meta = yaml.safe_load(stream)
-        except:
-            meta = {}
+            # GRAB META
+            try:
+                yamlFilePath = outputFolder + "/meta.yaml"
+                with open(yamlFilePath, 'r') as stream:
+                    meta = yaml.safe_load(stream)
+            except:
+                meta = {}
 
-        atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
-        psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
+            atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
+            psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
 
-        converter = aitoff(
-            log=log,
-            mapPath=mmap["map"],
-            outputFolder=outputFolder,
-            settings=settings,
-            plotName="atlas_coverage.png",
-            meta=meta,
-            patches=atlasPatches,
-            patchesColor="#d33682",
-            patchesLabel=" ATLAS Exposure"
-        )
-        converter.convert()
+            converter = aitoff(
+                log=log,
+                mapPath=mmap["map"],
+                outputFolder=outputFolder,
+                settings=settings,
+                plotName=f"atlas_coverage_{rangeDays}d.png",
+                meta=meta,
+                patches=atlasPatches,
+                patchesColor="#d33682",
+                patchesLabel=" ATLAS Exposure"
+            )
+            converter.convert()
 
-        converter = aitoff(
-            log=log,
-            mapPath=mmap["map"],
-            outputFolder=outputFolder,
-            settings=settings,
-            plotName="ps_coverage.png",
-            meta=meta,
-            patches=psPatches,
-            patchesColor="#859900",
-            patchesLabel="PanSTARRS Skycell"
-        )
-        converter.convert()
+            converter = aitoff(
+                log=log,
+                mapPath=mmap["map"],
+                outputFolder=outputFolder,
+                settings=settings,
+                plotName=f"ps_coverage_{rangeDays}d.png",
+                meta=meta,
+                patches=psPatches,
+                patchesColor="#859900",
+                patchesLabel=" PanSTARRS Skycell"
+            )
+            converter.convert()
 
     return
 
@@ -160,20 +162,22 @@ def list_maps_to_be_plotted(
 def get_atlas_exposures_covering_map(
         log,
         dbConn,
-        mapId):
+        mapId,
+        mjdUpper=700000000):
     """*Get all of the atlas exposures covering map*
 
     **Key Arguments:**
 
     - `log` -- logger
     - `dbConn` -- mysql database connection
-    - `mapId` -- the primaryId of the map in database     
+    - `mapId` -- the primaryId of the map in database   
+    - `mjdUpper` -- return exposures taken before this mjd
     """
     log.debug('starting the ``get_atlas_exposures_covering_map`` function')
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
-        select distinct e.raDeg, e.decDeg from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id
+        select distinct e.raDeg, e.decDeg from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id and e.mjd < {mjdUpper};
     """
     atlasExps = readquery(
         log=log,
@@ -189,20 +193,22 @@ def get_atlas_exposures_covering_map(
 def get_ps_skycells_covering_map(
         log,
         dbConn,
-        mapId):
+        mapId,
+        mjdUpper=700000000):
     """*Get all of the panstarrs skycells covering map*
 
     **Key Arguments:**
 
     - `log` -- logger
     - `dbConn` -- mysql database connection
-    - `mapId` -- the primaryId of the map in database          
+    - `mapId` -- the primaryId of the map in database     
+    - `mjdUpper` -- return exposures taken before this mjd     
     """
     log.debug('starting the ``get_ps_skycells_covering_map`` function')
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
-        select distinct raDeg, decDeg from exp_ps e, ps1_skycell_map s,alert_pixels_128 p  where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId};
+        select distinct raDeg, decDeg from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper};
     """
     atlasExps = readquery(
         log=log,
