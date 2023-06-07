@@ -278,58 +278,74 @@ def export_alerts_table_to_csv(
             ddir = "superevents"
             prefix = "S"
 
-        alertCsvPath = settings['lvk']['download_dir'] + f"/{ddir}/alerts.csv"
-        eventsCsvPath = settings['lvk']['download_dir'] + f"/{ddir}/events.csv"
+        for sig in ['all', False, True]:
 
-        # EVENTS VIEW EXPORT
-        sqlQuery = f"""
-            select * from events where superevent_id like "{prefix}%";
-        """
-        rows = readquery(
-            log=log,
-            sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            quiet=False
-        )
-        dataSet = list_of_dictionaries(
-            log=log,
-            listOfDictionaries=rows
-        )
-        csvData = dataSet.csv(filepath=None)
-        tableData = dataSet.table(filepath=None)
-        csvData = f"# Exported {now}\n" + csvData
-        tableData = f"# Exported {now}\n" + tableData
-        myFile = open(eventsCsvPath, 'w')
-        myFile.write(csvData)
-        myFile.close()
-        myFile = open(eventsCsvPath.replace(".csv", ".txt"), 'w')
-        myFile.write(tableData)
-        myFile.close()
+            if sig == 'all':
+                sigDir = ""
+                sigSql = ""
+            elif sig:
+                sigDir = "/_high_significance"
+                sigSql = " and significant = 1"
+            elif not sig:
+                sigDir = "/_low_significance"
+                sigSql = " and significant = 0"
 
-        # ALERTS TABLE EXPORT
-        sqlQuery = f"""
-            select * from alerts where superevent_id like "{prefix}%" order by alert_time desc;
-        """
-        rows = readquery(
-            log=log,
-            sqlQuery=sqlQuery,
-            dbConn=dbConn,
-            quiet=False
-        )
-        dataSet = list_of_dictionaries(
-            log=log,
-            listOfDictionaries=rows
-        )
-        csvData = dataSet.csv(filepath=None)
-        tableData = dataSet.table(filepath=None)
-        csvData = f"# Exported {now}\n" + csvData
-        tableData = f"# Exported {now}\n" + tableData
-        myFile = open(alertCsvPath, 'w')
-        myFile.write(csvData)
-        myFile.close()
-        myFile = open(alertCsvPath.replace(".csv", ".txt"), 'w')
-        myFile.write(tableData)
-        myFile.close()
+            exists = os.path.exists(settings['lvk']['download_dir'] + f"/{ddir}{sigDir}")
+            if not exists:
+                continue
+
+            alertCsvPath = settings['lvk']['download_dir'] + f"/{ddir}{sigDir}/alerts.csv"
+            eventsCsvPath = settings['lvk']['download_dir'] + f"/{ddir}{sigDir}/events.csv"
+
+            # EVENTS VIEW EXPORT
+            sqlQuery = f"""
+                select * from events where superevent_id like "{prefix}%" {sigSql};
+            """
+            rows = readquery(
+                log=log,
+                sqlQuery=sqlQuery,
+                dbConn=dbConn,
+                quiet=False
+            )
+            dataSet = list_of_dictionaries(
+                log=log,
+                listOfDictionaries=rows
+            )
+            csvData = dataSet.csv(filepath=None)
+            tableData = dataSet.table(filepath=None)
+            csvData = f"# Exported {now}\n" + csvData
+            tableData = f"# Exported {now}\n" + tableData
+            myFile = open(eventsCsvPath, 'w')
+            myFile.write(csvData)
+            myFile.close()
+            myFile = open(eventsCsvPath.replace(".csv", ".txt"), 'w')
+            myFile.write(tableData)
+            myFile.close()
+
+            # ALERTS TABLE EXPORT
+            sqlQuery = f"""
+                select * from alerts where superevent_id like "{prefix}%" order by alert_time desc;
+            """
+            rows = readquery(
+                log=log,
+                sqlQuery=sqlQuery,
+                dbConn=dbConn,
+                quiet=False
+            )
+            dataSet = list_of_dictionaries(
+                log=log,
+                listOfDictionaries=rows
+            )
+            csvData = dataSet.csv(filepath=None)
+            tableData = dataSet.table(filepath=None)
+            csvData = f"# Exported {now}\n" + csvData
+            tableData = f"# Exported {now}\n" + tableData
+            myFile = open(alertCsvPath, 'w')
+            myFile.write(csvData)
+            myFile.close()
+            myFile = open(alertCsvPath.replace(".csv", ".txt"), 'w')
+            myFile.write(tableData)
+            myFile.close()
 
     log.debug('completed the ``export_alerts_table_to_csv`` function')
     return None
