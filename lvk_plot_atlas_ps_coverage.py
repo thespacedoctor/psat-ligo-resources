@@ -41,6 +41,8 @@ import matplotlib.patches as patches
 from gocart.convert import aitoff
 from astropy.time import Time
 from datetime import datetime
+import pandas as pd
+from tabulate import tabulate
 
 
 def main(arguments=None):
@@ -74,13 +76,22 @@ def main(arguments=None):
         log.debug('%s = %s' % (varname, val,))
 
     nside = 128
+    pixelArea = float(hp.nside2pixarea(nside, degrees=True))
     maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"])
 
     for mmap in maps:
         mapMjd = mmap["mjd_obs"]
+        coverageStats = []
         for rangeDays in [1, 3, 7]:
-            atlasExps = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdUpper=mapMjd + rangeDays)
-            psExps = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdUpper=mapMjd + rangeDays)
+            atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+            psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+
+            atlasStats["days since event"] = rangeDays
+            psStats["days since event"] = rangeDays
+            atlasStats["survey"] = "atlas"
+            psStats["survey"] = "panstarrs"
+            coverageStats.append(atlasStats)
+            coverageStats.append(psStats)
 
             outputFolder = os.path.dirname(mmap["map"])
 
@@ -120,6 +131,17 @@ def main(arguments=None):
                 patchesLabel=" PanSTARRS Skycell"
             )
             converter.convert()
+
+        coverageStats = pd.DataFrame(coverageStats)
+        # SORT BY COLUMN NAME
+        coverageStats.sort_values(['survey', 'days since event'],
+                                  ascending=[True, True], inplace=True)
+
+        header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
+        coverageStats = tabulate(coverageStats, headers='keys', tablefmt='psql', showindex=False)
+        with open(outputFolder + "/map_coverage.txt", "w") as myFile:
+            myFile.write(header)
+            myFile.write(coverageStats)
 
     return
 
@@ -163,6 +185,7 @@ def get_atlas_exposures_covering_map(
         log,
         dbConn,
         mapId,
+        pixelArea,
         mjdUpper=700000000):
     """*Get all of the atlas exposures covering map*
 
@@ -171,6 +194,7 @@ def get_atlas_exposures_covering_map(
     - `log` -- logger
     - `dbConn` -- mysql database connection
     - `mapId` -- the primaryId of the map in database   
+    - `pixelArea` -- healpix nside pixel area in square deg
     - `mjdUpper` -- return exposures taken before this mjd
     """
     log.debug('starting the ``get_atlas_exposures_covering_map`` function')
@@ -186,14 +210,34 @@ def get_atlas_exposures_covering_map(
         quiet=False
     )
 
+    sqlQuery = f"""
+        select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id and e.mjd < {mjdUpper};
+    """
+    pixels = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
+    )
+
+    if pixels[0]['count'] == 0:
+        pixels[0]['prob'] = 0.
+        pixels[0]['area'] = 0.
+
+    stats = {
+        "prob. coverage (%)": float(f"{pixels[0]['prob']:0.2f}"),
+        "90% area coverage (squ.deg.)": float(f"{pixels[0]['area']:0.2f}"),
+    }
+
     log.debug('completed the ``get_atlas_exposures_covering_map`` function')
-    return atlasExps
+    return atlasExps, stats
 
 
 def get_ps_skycells_covering_map(
         log,
         dbConn,
         mapId,
+        pixelArea,
         mjdUpper=700000000):
     """*Get all of the panstarrs skycells covering map*
 
@@ -201,7 +245,8 @@ def get_ps_skycells_covering_map(
 
     - `log` -- logger
     - `dbConn` -- mysql database connection
-    - `mapId` -- the primaryId of the map in database     
+    - `mapId` -- the primaryId of the map in database 
+    - `pixelArea` -- healpix nside pixel area in square deg    
     - `mjdUpper` -- return exposures taken before this mjd     
     """
     log.debug('starting the ``get_ps_skycells_covering_map`` function')
@@ -210,15 +255,34 @@ def get_ps_skycells_covering_map(
     sqlQuery = f"""
         select distinct raDeg, decDeg from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper};
     """
-    atlasExps = readquery(
+    psExps = readquery(
         log=log,
         sqlQuery=sqlQuery,
         dbConn=dbConn,
         quiet=False
     )
 
+    sqlQuery = f"""
+        select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper};
+    """
+    pixels = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
+    )
+
+    if pixels[0]['count'] == 0:
+        pixels[0]['prob'] = 0.
+        pixels[0]['area'] = 0.
+
+    stats = {
+        "prob. coverage (%)": float(f"{pixels[0]['prob']:0.2f}"),
+        "90% area coverage (squ.deg.)": float(f"{pixels[0]['area']:0.2f}"),
+    }
+
     log.debug('completed the ``get_ps_skycells_covering_map`` function')
-    return atlasExps
+    return psExps, stats
 
 
 def get_patches(
