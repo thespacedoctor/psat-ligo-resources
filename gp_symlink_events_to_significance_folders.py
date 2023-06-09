@@ -60,21 +60,19 @@ def plugin(
         os.makedirs(hs)
 
     # IS THE EVENT SIGNIFICANT?
-    if "significant" in alertMeta['ALERT']['event']:
-        if alertMeta['ALERT']['event']["significant"]:
-            dest = hs + "/" + basename
-        else:
-            dest = ls + "/" + basename
+    if 'event' in alertMeta['ALERT'] and alertMeta['ALERT']['event']:
+        if "significant" in alertMeta['ALERT']['event']:
+            if alertMeta['ALERT']['event']["significant"]:
+                dest = hs + "/" + basename
+            else:
+                dest = ls + "/" + basename
 
-        if not os.path.exists(dest):
-            os.symlink(eventDir, dest)
+            print(dest)
+            if not os.path.exists(dest):
+                os.symlink(eventDir, dest)
 
     log.debug('completed the ``plugin`` function')
     return None
-
-
-# use the tab-trigger below for new function
-# xt-def-function
 
 
 # DO NOT EDIT ANYTHING BOTH THIS LINE
