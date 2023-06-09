@@ -70,7 +70,6 @@ def plugin(
             else:
                 dest = ls + "/" + basename
 
-            print(dest)
             if not os.path.exists(dest):
                 os.symlink(eventDir, dest)
 
