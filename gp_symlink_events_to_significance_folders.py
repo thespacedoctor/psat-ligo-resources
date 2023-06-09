@@ -48,6 +48,9 @@ def plugin(
     """
     log.debug('starting the ``plugin`` function')
 
+    if alertDir[-1] == "/":
+        alertDir = alertDir[:-1]
+
     eventDir = os.path.dirname(alertDir)
     basename = os.path.basename(eventDir)
     parentDir = os.path.dirname(eventDir)
