@@ -60,7 +60,7 @@ def plugin(
     client = WebClient(settings["slack"]["bot_token"])
 
     # GRAB EVENT METADATA
-    evertId = alertMeta["ALERT"]["superevent_id"]
+    eventId = alertMeta["ALERT"]["superevent_id"]
     alertType = alertMeta["ALERT"]["alert_type"]
     alertTime = alertMeta["ALERT"]["time_created"].replace("Z", "")
 
@@ -74,12 +74,12 @@ def plugin(
     conn = get_sqlite_dbconn(log=log)
     conn.row_factory = dict_factory
     c = conn.cursor()
-    sqlQuery = f"select count(*) as count from events where eventId = '{evertId}' and alertTime = '{alertTime}'"
+    sqlQuery = f"select count(*) as count from events where eventid = '{eventId}' and alertTime = '{alertTime}'"
     c.execute(sqlQuery)
     threads = c.fetchall()
     count = threads[0]['count']
     if count:
-        print(f"The {alertType} alert {evertId} has already been posted to slack")
+        print(f"The {alertType} alert {eventId} has already been posted to slack")
         return
 
     # DETERMINE WHICH CHANNEL TO POST TO
@@ -92,26 +92,40 @@ def plugin(
     elif significant == True:
         channel = "high-significance"
 
-    if "debug" in settings["slack"] and settings["slack"]["debug"]:
+    if alertType == "RETRACTION":
+        sqlQuery = f"select channel from events where eventid = '{eventId}'"
+        c.execute(sqlQuery)
+        threads = c.fetchall()
+        if not len(threads):
+            # NOT ALERTED ON THIS BEFORE
+            log.error(f"Have not seen event {eventId} before. Can't determine which channel to post this retraction too.")
+            return
+        else:
+            channel = threads[0]['channel']
+
+    if "debug" in settings["slack"] and settings["slack"]["debug"] and "test-" not in channel:
         channel = "test-" + channel
 
     # DETERMINE TAGS TO ADD TO ALERT
-    tags = []
-    if 'event' in alertMeta['ALERT'] and alertMeta['ALERT']['event']:
-        if "group" in alertMeta['ALERT']['event'] and alertMeta['ALERT']['event']["group"].lower() == "burst":
-            tags.append("BURST")
+    if alertType != "RETRACTION":
+        tags = []
+        if 'event' in alertMeta['ALERT'] and alertMeta['ALERT']['event']:
+            if "group" in alertMeta['ALERT']['event'] and alertMeta['ALERT']['event']["group"].lower() == "burst":
+                tags.append("BURST")
 
-    if 'event' in alertMeta['ALERT'] and "classification" in alertMeta['ALERT']['event'] and len(alertMeta['ALERT']['event']['classification']):
-        for k, v in alertMeta['ALERT']['event']['classification'].items():
-            if v > 0.1:
-                tags.append(k)
-    if len(tags):
-        tags = "*#" + ("* *#").join(tags) + "* "
+        if 'event' in alertMeta['ALERT'] and "classification" in alertMeta['ALERT']['event'] and len(alertMeta['ALERT']['event']['classification']):
+            for k, v in alertMeta['ALERT']['event']['classification'].items():
+                if v > 0.1:
+                    tags.append(k)
+        if len(tags):
+            tags = "*#" + ("* *#").join(tags) + "* "
+        else:
+            tags = ""
     else:
         tags = ""
 
     # HAS THE EVENT BEEN POSTED BEFORE
-    sqlQuery = f"select thread_id from events where eventId = '{evertId}'"
+    sqlQuery = f"select thread_id from events where eventId = '{eventId}'"
     c.execute(sqlQuery)
     threads = c.fetchall()
     if len(threads):
@@ -127,14 +141,14 @@ def plugin(
         basename = os.path.basename(f)
         if basename == "meta.yaml":
             upload_text_file = client.files_upload(
-                title=f"{alertType} metadata for {evertId}",
+                title=f"{alertType} metadata for {eventId}",
                 file=f"{f}",
                 initial_comment="Here is the metadata ..."
             )
             metaUrl = upload_text_file["file"]["permalink"]
         if basename == "skymap.png":
             upload_text_file = client.files_upload(
-                title=f"{alertType} skymap for {evertId}",
+                title=f"{alertType} skymap for {eventId}",
                 file=f"{f}",
                 initial_comment="Here is the file:",
             )
@@ -142,14 +156,14 @@ def plugin(
 
     # POST MESSAGE
     response = client.chat_postMessage(
-        text=f"{evertId}: {alertType} alert for {tags}event. {mapUrl}",
+        text=f"{eventId}: {alertType} alert for {tags}event. {mapUrl}",
         channel=channel,
         blocks=[
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"*<https://gracedb.ligo.org/superevents/{evertId}|{evertId}>*: {alertType} alert for {tags}event (Alert number {alertNumber} for this event)."
+                    "text": f"*<https://gracedb.ligo.org/superevents/{eventId}|{eventId}>*: {alertType} alert for {tags}event (Alert number {alertNumber} for this event)."
                 },
             }
         ],
@@ -160,21 +174,21 @@ def plugin(
     if not ts:
         ts = response['ts']
 
-    sqlQuery = f"insert into events (eventid, channel, thread_id, alertTime) values ('{evertId}','{channel}','{ts}', '{alertTime}')"
+    sqlQuery = f"insert into events (eventid, channel, thread_id, alertTime) values ('{eventId}','{channel}','{ts}', '{alertTime}')"
     c.execute(sqlQuery)
     conn.commit()
     c.close()
 
     if metaUrl:
         response = client.chat_postMessage(
-            text=f"{evertId}: metadata. {metaUrl}",
+            text=f"{eventId}: metadata. {metaUrl}",
             channel=channel,
             blocks=[
                 {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": f"*<https://gracedb.ligo.org/superevents/{evertId}|{evertId}>*: {alertType} alert metadata."
+                        "text": f"*<https://gracedb.ligo.org/superevents/{eventId}|{eventId}>*: {alertType} alert metadata."
                     },
                 }
             ],
