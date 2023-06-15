@@ -85,7 +85,7 @@ def list_maps_to_be_imported(
     from fundamentals.mysql import writequery
 
     sqlQuery = f"""CREATE TABLE IF NOT EXISTS `alert_pixels_128` (
-      `mapId` tinyint(4) DEFAULT NULL,
+      `mapId` int(11) DEFAULT NULL,
       `ipix` int(11) DEFAULT NULL,
       `cumprob` double DEFAULT NULL,
       `prob` double DEFAULT NULL,
