@@ -140,14 +140,14 @@ def plugin(
     for f in alertFiles:
         basename = os.path.basename(f)
         if basename == "meta.yaml":
-            upload_text_file = client.files_upload(
+            upload_text_file = client.files_upload_v2(
                 title=f"{alertType} metadata for {eventId}",
                 file=f"{f}",
                 initial_comment="Here is the metadata ..."
             )
             metaUrl = upload_text_file["file"]["permalink"]
         if basename == "skymap.png":
-            upload_text_file = client.files_upload(
+            upload_text_file = client.files_upload_v2(
                 title=f"{alertType} skymap for {eventId}",
                 file=f"{f}",
                 initial_comment="Here is the file:",
@@ -166,13 +166,9 @@ def plugin(
                     "text": f"*<https://gracedb.ligo.org/superevents/{eventId}|{eventId}>*: {alertType} alert for {tags}event (Alert number {alertNumber} for this event)."
                 },
             }
-        ],
-        thread_ts=ts,
-        reply_broadcast=True
+        ]
     )
-
-    if not ts:
-        ts = response['ts']
+    ts = response['ts']
 
     sqlQuery = f"insert into events (eventid, channel, thread_id, alertTime) values ('{eventId}','{channel}','{ts}', '{alertTime}')"
     c.execute(sqlQuery)
