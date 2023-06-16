@@ -189,7 +189,7 @@ def plugin(
                 }
             ],
             thread_ts=ts,
-            reply_broadcast=True
+            reply_broadcast=False
         )
 
     return
