@@ -35,6 +35,7 @@ from datetime import datetime, date, time
 from slack_sdk import WebClient
 import pandas as pd
 import sqlite3 as sql
+import time
 
 
 def plugin(
@@ -169,6 +170,8 @@ def plugin(
         ]
     )
     ts = response['ts']
+    # PAUSING SO SLACK WILL POST A NOTIFICATION
+    time.sleep(3)
 
     sqlQuery = f"insert into events (eventid, channel, thread_id, alertTime) values ('{eventId}','{channel}','{ts}', '{alertTime}')"
     c.execute(sqlQuery)
@@ -176,6 +179,7 @@ def plugin(
     c.close()
 
     if metaUrl:
+
         response = client.chat_postMessage(
             text=f"{eventId}: metadata. {metaUrl}",
             channel=channel,
