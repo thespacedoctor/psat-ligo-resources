@@ -106,6 +106,8 @@ def plugin(
 
     if "debug" in settings["slack"] and settings["slack"]["debug"] and "test-" not in channel:
         channel = "test-" + channel
+    elif "test-" not in channel and eventId[0] == "M":
+        channel = "test-" + channel
 
     # DETERMINE TAGS TO ADD TO ALERT
     if alertType != "RETRACTION":
