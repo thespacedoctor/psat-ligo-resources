@@ -11,7 +11,7 @@ database settings:
     host: localhost
     user: myuser
     password: mypass
-    suffix: lvk_
+    prefix: lvk_
 ```
 
 You will also need this installs:
@@ -119,12 +119,12 @@ def plugin(
         if os.path.splitext(f)[1] == ".fits":
             alertDict["map"] = f
 
-    if "suffix" in settings["database settings"] and settings["database settings"]["suffix"]:
-        suffix = settings["database settings"]["suffix"]
-        alertsTable = suffix + "alerts"
-        eventsView = suffix + "events"
+    if "prefix" in settings["database settings"] and settings["database settings"]["prefix"]:
+        prefix = settings["database settings"]["prefix"]
+        alertsTable = prefix + "alerts"
+        eventsView = prefix + "events"
     else:
-        suffix = ""
+        prefix = ""
         alertsTable = "alerts"
         eventsView = "events"
 
