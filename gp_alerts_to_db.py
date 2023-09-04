@@ -233,7 +233,7 @@ def plugin(
         dbConn=dbConn,
         log=log,
         dictList=[alertDict],
-        dbTableName={alertsTable},
+        dbTableName=alertsTable,
         dateModified=False,
         dateCreated=False,
         batchSize=2500,
