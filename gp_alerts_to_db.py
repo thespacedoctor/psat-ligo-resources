@@ -240,7 +240,7 @@ def plugin(
         replace=True,
     )
 
-    export_alerts_table_to_csv(log=log, dbConn=dbConn, settings=settings)
+    export_alerts_table_to_csv(log=log, dbConn=dbConn, settings=settings, alertsTable=alertsTable, eventsView=eventsView)
 
     log.debug('completed the ``plugin`` function')
     return None
@@ -249,13 +249,17 @@ def plugin(
 def export_alerts_table_to_csv(
         log,
         dbConn,
-        settings):
+        settings,
+        alertsTable,
+        eventsView):
     """*export the alerts table and events view to CSV files*
 
         **Key Arguments:**
 
         - `dbConn` -- mysql database connection
         - `log` -- logger
+        - `alertsTable` -- name of the alerts DB table
+        - `eventsView` -- name of the events DB view
 
         **Usage:**
 
