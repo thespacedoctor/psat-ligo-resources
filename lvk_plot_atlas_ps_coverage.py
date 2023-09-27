@@ -138,7 +138,10 @@ def main(arguments=None):
         coverageStats.sort_values(['survey', 'days since event'],
                                   ascending=[True, True], inplace=True)
 
-        header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
+        if "ALERT" in meta:
+            header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
+        else:
+            header = f"# archive map\n"
         coverageStats = tabulate(coverageStats, headers='keys', tablefmt='psql', showindex=False)
         with open(outputFolder + "/map_coverage.txt", "w") as myFile:
             myFile.write(header)
@@ -256,6 +259,7 @@ def get_ps_skycells_covering_map(
     sqlQuery = f"""
         select distinct raDeg, decDeg from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper};
     """
+    print(sqlQuery)
     psExps = readquery(
         log=log,
         sqlQuery=sqlQuery,

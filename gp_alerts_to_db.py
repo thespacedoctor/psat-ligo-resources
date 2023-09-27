@@ -11,6 +11,7 @@ database settings:
     host: localhost
     user: myuser
     password: mypass
+    tablePrefix: lvk_
 ```
 
 You will also need this installs:
@@ -118,7 +119,16 @@ def plugin(
         if os.path.splitext(f)[1] == ".fits":
             alertDict["map"] = f
 
-    sqlQuery = f"""CREATE TABLE IF NOT EXISTS `alerts` (
+    if "tablePrefix" in settings["database settings"] and settings["database settings"]["tablePrefix"]:
+        tablePrefix = settings["database settings"]["tablePrefix"]
+        alertsTable = tablePrefix + "alerts"
+        eventsView = tablePrefix + "events"
+    else:
+        tablePrefix = ""
+        alertsTable = "alerts"
+        eventsView = "events"
+
+    sqlQuery = f"""CREATE TABLE IF NOT EXISTS `{alertsTable}` (
       `superevent_id` varchar(20) NOT NULL,
       `significant` tinyint(4)  DEFAULT NULL,
       `alert_type` varchar(20) DEFAULT NULL,
@@ -160,7 +170,7 @@ def plugin(
         dbConn=dbConn,
     )
 
-    sqlQuery = f"""CREATE OR REPLACE VIEW `events` AS
+    sqlQuery = f"""CREATE OR REPLACE VIEW `{eventsView}` AS
     (SELECT 
         a.superevent_id,
         b.significant,
@@ -185,29 +195,29 @@ def plugin(
         b.area90
     FROM
         (SELECT 
-            alerts.*
+            {alertsTable}.*
         FROM
-            alerts, (SELECT 
+            {alertsTable}, (SELECT 
             superevent_id, MAX(alert_time) AS alert_time
         FROM
-            alerts
+            {alertsTable}
         GROUP BY superevent_id) latest_alert
         WHERE
-            alerts.superevent_id = latest_alert.superevent_id
-                AND alerts.alert_time = latest_alert.alert_time) a,
+            {alertsTable}.superevent_id = latest_alert.superevent_id
+                AND {alertsTable}.alert_time = latest_alert.alert_time) a,
         (SELECT 
-            alerts.*
+            {alertsTable}.*
         FROM
-            alerts, (SELECT 
+            {alertsTable}, (SELECT 
             superevent_id, MAX(alert_time) AS alert_time
         FROM
-            alerts
+            {alertsTable}
         WHERE
             alert_type != 'RETRACTION'
         GROUP BY superevent_id) latest_alert
         WHERE
-            alerts.superevent_id = latest_alert.superevent_id
-                AND alerts.alert_time = latest_alert.alert_time) b
+            {alertsTable}.superevent_id = latest_alert.superevent_id
+                AND {alertsTable}.alert_time = latest_alert.alert_time) b
     WHERE
         a.superevent_id = b.superevent_id);
     """
@@ -223,14 +233,14 @@ def plugin(
         dbConn=dbConn,
         log=log,
         dictList=[alertDict],
-        dbTableName="alerts",
+        dbTableName=alertsTable,
         dateModified=False,
         dateCreated=False,
         batchSize=2500,
         replace=True,
     )
 
-    export_alerts_table_to_csv(log=log, dbConn=dbConn, settings=settings)
+    export_alerts_table_to_csv(log=log, dbConn=dbConn, settings=settings, alertsTable=alertsTable, eventsView=eventsView)
 
     log.debug('completed the ``plugin`` function')
     return None
@@ -239,13 +249,17 @@ def plugin(
 def export_alerts_table_to_csv(
         log,
         dbConn,
-        settings):
+        settings,
+        alertsTable,
+        eventsView):
     """*export the alerts table and events view to CSV files*
 
         **Key Arguments:**
 
         - `dbConn` -- mysql database connection
         - `log` -- logger
+        - `alertsTable` -- name of the alerts DB table
+        - `eventsView` -- name of the events DB view
 
         **Usage:**
 
@@ -299,7 +313,7 @@ def export_alerts_table_to_csv(
 
             # EVENTS VIEW EXPORT
             sqlQuery = f"""
-                select * from events where superevent_id like "{prefix}%" {sigSql};
+                select * from {eventsView} where superevent_id like "{prefix}%" {sigSql};
             """
             rows = readquery(
                 log=log,
@@ -324,7 +338,7 @@ def export_alerts_table_to_csv(
 
             # ALERTS TABLE EXPORT
             sqlQuery = f"""
-                select * from alerts where superevent_id like "{prefix}%" order by alert_time desc;
+                select * from {alertsTable} where superevent_id like "{prefix}%" order by alert_time desc;
             """
             rows = readquery(
                 log=log,
