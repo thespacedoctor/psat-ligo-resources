@@ -79,8 +79,18 @@ def main(arguments=None):
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
     maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"])
 
-    for mmap in maps:
-        print(mmap["mapId"])
+    print(f"Generating {len(mmaps)} x 3 plots")
+    count = len(mmaps)
+
+    for index, mmap in enumerate(maps):
+
+        if index > 1:
+            # Cursor up one line and clear line
+            sys.stdout.write("\x1b[1A\x1b[2K")
+
+        percent = (float(index) / float(count)) * 100.
+        print(f'{index}/{count} ({percent:1.1f}% done)')
+
         mapMjd = mmap["mjd_obs"]
         coverageStats = []
         for rangeDays in [1, 3, 7]:
