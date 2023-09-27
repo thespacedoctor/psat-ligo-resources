@@ -70,8 +70,8 @@ def main(arguments=None):
     nside = 128
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     print(len(maps))
-    for mmap in maps:
-        print(mmaps["id"])
+    for index, mmap in enumerate(maps):
+        print(index, mmaps["id"])
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=7)
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4)
