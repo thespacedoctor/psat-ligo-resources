@@ -45,9 +45,9 @@ check system $HOST
     # if swap usage > 25% then alert
 
 check process gocart with pidfile  /home/ligo/.config/gocart/daemon.pid
-  start program = "/home/ligo/anaconda3/envs/gocart/bin/gocart -p listen" with timeout 60 seconds
+  start program = "/usr/bin/sh /home/ligo/monit/start_gocart.sh" with timeout 60 seconds
   stop program  = "/home/ligo/anaconda3/envs/gocart/bin/gocart quit"
-  restart program  = "/home/ligo/anaconda3/envs/gocart/bin/gocart -p restart"
+  restart program  = "/usr/bin/sh /home/ligo/monit/start_gocart.sh"
   if does not exist then restart
   if does not exist for 1 cycle
     then exec "/home/ligo/monit/monit2slack.rb --status warning --event 'gocart is not running'"
@@ -69,12 +69,12 @@ check program lvk_exp_import with path "/home/ligo/anaconda3/envs/gocart/bin/pyt
 check program lvk_match_exposures_to_maps with path "/home/ligo/anaconda3/envs/gocart/bin/python /home/ligo/psat-ligo-resources/lvk_match_exposures_to_maps.py" 
    with timeout 2400 seconds
    EVERY 30 CYCLES
-   if status > 0 for 2 times within 3 cycles then exec "/home/ligo/monit/monit2slack.rb --status error --event 'lvk_match_exposures_to_maps failed'"
+   if status > 0 for 9 times within 10 cycles then exec "/home/ligo/monit/monit2slack.rb --status error --event 'lvk_match_exposures_to_maps failed'"
    else if succeeded then exec "/home/ligo/monit/monit2slack.rb --status ok --event 'lvk_match_exposures_to_maps command is now passing again'"
 
 check program lvk_plot_atlas_ps_coverage with path "/home/ligo/anaconda3/envs/gocart/bin/python /home/ligo/psat-ligo-resources/lvk_plot_atlas_ps_coverage.py 21" 
-   with timeout 1200 seconds
-   EVERY 30 CYCLES
-   if status > 0 for 2 times within 3 cycles then exec "/home/ligo/monit/monit2slack.rb --status error --event 'lvk_plot_atlas_ps_coverage failed'"
+   with timeout 2400 seconds
+   EVERY 45 CYCLES
+   if status > 0 for 9 times within 10 cycles then exec "/home/ligo/monit/monit2slack.rb --status error --event 'lvk_plot_atlas_ps_coverage failed'"
    else if succeeded then exec "/home/ligo/monit/monit2slack.rb --status ok --event 'lvk_plot_atlas_ps_coverage command is now passing again'"
 

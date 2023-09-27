@@ -80,6 +80,7 @@ def main(arguments=None):
     maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"])
 
     for mmap in maps:
+        print(mmap["mapId"])
         mapMjd = mmap["mjd_obs"]
         coverageStats = []
         for rangeDays in [1, 3, 7]:
