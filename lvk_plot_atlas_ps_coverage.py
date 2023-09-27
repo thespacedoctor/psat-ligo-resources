@@ -184,6 +184,8 @@ def list_maps_to_be_plotted(
         select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1 {extra};
     """
 
+    print(sqlQuery)
+
     maps = readquery(
         log=log,
         sqlQuery=sqlQuery,
@@ -269,7 +271,7 @@ def get_ps_skycells_covering_map(
     sqlQuery = f"""
         select distinct raDeg, decDeg from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper};
     """
-    print(sqlQuery)
+
     psExps = readquery(
         log=log,
         sqlQuery=sqlQuery,
