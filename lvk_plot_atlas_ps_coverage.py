@@ -79,8 +79,8 @@ def main(arguments=None):
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
     maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"])
 
-    print(f"Generating {len(mmaps)} x 3 plots")
-    count = len(mmaps)
+    print(f"Generating {len(maps)} x 3 plots")
+    count = len(maps)
 
     for index, mmap in enumerate(maps):
 
