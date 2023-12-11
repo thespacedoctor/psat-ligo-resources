@@ -160,11 +160,11 @@ def import_csv_content_to_database(
 
     for t, c in zip(tableNames, csvContents):
 
-        if not len(c):
-            continue
-
         if pastDays:
             c = [i for i in c if float(i["mjd"]) > mjdnow - pastDays]
+
+        if not len(c):
+            continue
 
         if "imageid" in c[0]:
             uniqueKeyList = ["imageid", "skycell"]
