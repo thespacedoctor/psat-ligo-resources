@@ -72,7 +72,7 @@ def main(arguments=None):
 
     create_tables_if_not_exist(log=log, dbConn=dbConn)
     tableNames, csvContents = read_csv_files(log=log, pathToExports=pathToExports)
-    import_csv_content_to_database(log=log, dbConn=dbConn, tableNames=tableNames, csvContents=csvContents, settings=settings)
+    import_csv_content_to_database(log=log, dbConn=dbConn, tableNames=tableNames, csvContents=csvContents, settings=settings, pastDays=5)
 
     return
 
@@ -131,7 +131,8 @@ def import_csv_content_to_database(
         dbConn,
         tableNames,
         csvContents,
-        settings):
+        settings,
+        pastDays):
     """*import csv content intp exp_ps and exp_atlas database talbes*
 
     **Key Arguments:**
@@ -140,12 +141,20 @@ def import_csv_content_to_database(
     - `dbConn` -- mysql database connection
     - `tableNames` -- a list of database tablenames
     - `csvContents` -- a list of the CSV connects (list of dictionaries). List equal in length to `tableNames`
-    - `settings` -- the settings dict      
+    - `settings` -- the settings dict    
+    - `pastDays` -- import only the last N days of exposures  
     """
     log.debug('starting the ``import_csv_content_to_database`` function')
 
     from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
+    from astropy.time import Time
+    from datetime import datetime
+    utcnow = datetime.utcnow()
+    mjdnow = Time([utcnow], scale='utc').mjd[0]
     # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
+
+    if pastDays:
+        print(f"Ingesting the last {pastDays} days worth of exposures")
 
     assert len(tableNames) == len(csvContents)
 
@@ -153,6 +162,9 @@ def import_csv_content_to_database(
 
         if not len(c):
             continue
+
+        if pastDays:
+            c = [i for i in c if float(i["mjd"]) > mjdnow - pastDays]
 
         if "imageid" in c[0]:
             uniqueKeyList = ["imageid", "skycell"]
