@@ -69,9 +69,6 @@ def main(arguments=None):
 
     nside = 128
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
-
-    print(f"Processing {len(maps)} maps")
-
     for index, mmap in enumerate(maps):
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=7)
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
@@ -161,7 +158,6 @@ def list_maps_still_to_be_covered(
     sqlQuery = f"""
         select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1;
     """
-    print(sqlQuery)
     maps = readquery(
         log=log,
         sqlQuery=sqlQuery,
@@ -199,7 +195,6 @@ def get_exposures_in_maps_temporal_window(
     sqlQuery = f"""
         SELECT primaryId as expname, raDeg, decDeg FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
     """
-    print(sqlQuery)
     atExps = readquery(
         log=log,
         sqlQuery=sqlQuery,
@@ -211,7 +206,6 @@ def get_exposures_in_maps_temporal_window(
     sqlQuery = f"""
         SELECT e.primaryId as expname, raDeg, decDeg FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
     """
-    print(sqlQuery)
     psExps = readquery(
         log=log,
         sqlQuery=sqlQuery,
@@ -221,9 +215,6 @@ def get_exposures_in_maps_temporal_window(
     psExps = pd.DataFrame(psExps)
 
     log.debug('completed the ``get_exposures_in_maps_temporal_window`` function')
-
-    print("ATLAS Exposure # ", len(atExps), ", PS Exposure # ", len(psExps))
-
     return atExps, psExps
 
 
