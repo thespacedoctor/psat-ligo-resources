@@ -84,6 +84,11 @@ def main(arguments=None):
 
     for index, mmap in enumerate(maps):
 
+        exists = os.path.exists(mmap["map"])
+        if not exists:
+            print(f"The map '{mmap['map']}' does not exist on this file system")
+            continue
+
         if index > 1:
             # Cursor up one line and clear line
             sys.stdout.write("\x1b[1A\x1b[2K")
