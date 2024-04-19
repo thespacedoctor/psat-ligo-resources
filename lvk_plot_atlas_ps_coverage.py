@@ -234,7 +234,7 @@ def get_atlas_exposures_covering_map(
         WHERE
             p.mapId = {mapId}
                 AND e.primaryId = p.exp_atlas_id
-                e.mjd < {mjdUpper}
+                and e.mjd < {mjdUpper}
         ORDER BY mjd;
     """
     atlasExps = readquery(
