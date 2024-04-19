@@ -258,6 +258,8 @@ def get_atlas_exposures_covering_map(
         quiet=False
     )
 
+    print(sqlQuery)
+
     sqlQuery = f"""
         select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id and e.mjd < {mjdUpper};
     """
