@@ -98,18 +98,18 @@ def main(arguments=None):
 
         mapMjd = mmap["mjd_obs"]
 
-        # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
-        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea)
-        psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea)
+        # # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
+        # atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea)
+        # psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea)
 
-        import pandas as pd
-        df = pd.DataFrame(atlasExps)
-        from tabulate import tabulate
-        print(tabulate(df, headers='keys', tablefmt='psql'))
-        print(atlasExps)
-        print("\n\n\n")
+        # import pandas as pd
+        # df = pd.DataFrame(atlasExps)
+        # from tabulate import tabulate
+        # print(tabulate(df, headers='keys', tablefmt='psql'))
+        # print(atlasExps)
+        # print("\n\n\n")
 
-        continue
+        # continue
 
         coverageStats = []
         for rangeDays in [1, 3, 7]:
@@ -257,8 +257,6 @@ def get_atlas_exposures_covering_map(
         dbConn=dbConn,
         quiet=False
     )
-
-    print(sqlQuery)
 
     sqlQuery = f"""
         select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id and e.mjd < {mjdUpper};
