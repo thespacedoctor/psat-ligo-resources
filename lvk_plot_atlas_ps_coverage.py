@@ -107,6 +107,7 @@ def main(arguments=None):
         from tabulate import tabulate
         print(tabulate(df, headers='keys', tablefmt='psql'))
         print(atlasExps)
+        print("\n\n\n")
 
         continue
 
