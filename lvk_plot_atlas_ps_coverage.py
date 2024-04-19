@@ -106,6 +106,7 @@ def main(arguments=None):
         df = pd.DataFrame(atlasExps)
         from tabulate import tabulate
         print(tabulate(df, headers='keys', tablefmt='psql'))
+        print("HERE")
 
         continue
 
