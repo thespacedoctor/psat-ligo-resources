@@ -15,13 +15,13 @@ Before using this script in a gocart conda environment, you will need to:
 conda install pymysql -c conda-forge
 ```
 
-You will also need to add database credientials to the gocart.yaml file.
+You will also need to add database credentials to the gocart.yaml file.
 
 Usage:
     lvk_plot_atlas_ps_coverage [<daysAgo>]
 
 Options:
-    <daysAgo>               only replot events from last N days
+    <daysAgo>             only replot events from last N days
 
     -h, --help            show this help message
     -v, --version         show version
@@ -220,7 +220,22 @@ def get_atlas_exposures_covering_map(
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
-        select distinct e.raDeg, e.decDeg from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id and e.mjd < {mjdUpper};
+        SELECT DISTINCT
+            mjd,
+            expname,
+            raDeg,
+            decDeg,
+            exp_time,
+            filter,
+            limiting_magnitude
+        FROM
+            exp_atlas e,
+            alert_pixels_128 p
+        WHERE
+            p.mapId = {mapId}
+                AND e.primaryId = p.exp_atlas_id
+                e.mjd < {mjdUpper}
+        ORDER BY mjd;
     """
     atlasExps = readquery(
         log=log,
@@ -272,7 +287,24 @@ def get_ps_skycells_covering_map(
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
-        select distinct raDeg, decDeg from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper};
+        SELECT distinct
+            mjd,
+            imageID,
+            skycell,
+            raDeg,
+            decDeg,
+            exp_time,
+            filter,
+            limiting_mag
+        FROM
+            exp_ps e,
+            ps1_skycell_map s,
+            alert_pixels_128 p
+        WHERE
+            s.skycell_id = e.skycell
+                AND e.primaryId = p.exp_ps_id
+                AND p.mapId = {mapId} and e.mjd < {mjdUpper}
+        ORDER BY mjd ASC;
     """
 
     psExps = readquery(
