@@ -75,6 +75,7 @@ def main(arguments=None):
             a["dbConn"] = val
         log.debug('%s = %s' % (varname, val,))
 
+    import pandas as pd
     nside = 128
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
     maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"])
@@ -103,12 +104,9 @@ def main(arguments=None):
         psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdUpper=mapMjd + 14)
 
         print(mapMjd)
-        import pandas as pd
+
         df = pd.DataFrame(atlasExps)
-        from tabulate import tabulate
-        print(tabulate(df, headers='keys', tablefmt='psql'))
-        print(atlasExps)
-        print("\n\n\n")
+        df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
 
         continue
 
