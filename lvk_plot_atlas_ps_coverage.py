@@ -103,8 +103,7 @@ def main(arguments=None):
         atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdUpper=mapMjd + 14)
         psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdUpper=mapMjd + 14)
 
-        print(mapMjd)
-
+        outputFolder = os.path.dirname(mmap["map"])
         df = pd.DataFrame(atlasExps)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
 
@@ -121,8 +120,6 @@ def main(arguments=None):
             psStats["survey"] = "panstarrs"
             coverageStats.append(atlasStats)
             coverageStats.append(psStats)
-
-            outputFolder = os.path.dirname(mmap["map"])
 
             # GRAB META
             try:
