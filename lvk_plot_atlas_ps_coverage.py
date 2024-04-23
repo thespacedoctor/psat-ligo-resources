@@ -99,9 +99,10 @@ def main(arguments=None):
         mapMjd = mmap["mjd_obs"]
 
         # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
-        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea)
-        psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea)
+        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdUpper=mapMjd + 14)
+        psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdUpper=mapMjd + 14)
 
+        print(mapMjd)
         import pandas as pd
         df = pd.DataFrame(atlasExps)
         from tabulate import tabulate
@@ -109,7 +110,7 @@ def main(arguments=None):
         print(atlasExps)
         print("\n\n\n")
 
-        # continue
+        continue
 
         coverageStats = []
         for rangeDays in [1, 3, 7]:
