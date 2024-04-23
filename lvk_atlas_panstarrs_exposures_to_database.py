@@ -180,7 +180,7 @@ def import_csv_content_to_database(
             batchSize=200000,
             dateModified=False,
             dateCreated=False,
-            replace=True,
+            replace=False,
             dbSettings=settings["database settings"]
 
         )
