@@ -100,8 +100,8 @@ def main(arguments=None):
         mapMjd = mmap["mjd_obs"]
 
         # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
-        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdUpper=mapMjd + 14)
-        psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdUpper=mapMjd + 14)
+        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14)
+        psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
 
         outputFolder = os.path.dirname(mmap["map"])
         df = pd.DataFrame(atlasExps)
@@ -113,8 +113,8 @@ def main(arguments=None):
 
         coverageStats = []
         for rangeDays in [1, 3, 7]:
-            atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
-            psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+            atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+            psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
 
             atlasStats["days since event"] = rangeDays
             psStats["days since event"] = rangeDays
@@ -217,6 +217,7 @@ def get_atlas_exposures_covering_map(
         dbConn,
         mapId,
         pixelArea,
+        mjdLower,
         mjdUpper=700000000):
     """*Get all of the atlas exposures covering map*
 
@@ -226,6 +227,7 @@ def get_atlas_exposures_covering_map(
     - `dbConn` -- mysql database connection
     - `mapId` -- the primaryId of the map in database   
     - `pixelArea` -- healpix nside pixel area in square deg
+    - `mjdLower` -- the mjd of the event  
     - `mjdUpper` -- return exposures taken before this mjd
     """
     log.debug('starting the ``get_atlas_exposures_covering_map`` function')
@@ -246,7 +248,7 @@ def get_atlas_exposures_covering_map(
         WHERE
             p.mapId = {mapId}
                 AND e.primaryId = p.exp_atlas_id
-                and e.mjd < {mjdUpper}
+                and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
         ORDER BY mjd;
     """
     atlasExps = readquery(
@@ -257,7 +259,7 @@ def get_atlas_exposures_covering_map(
     )
 
     sqlQuery = f"""
-        select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id and e.mjd < {mjdUpper};
+        select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id and e.mjd < {mjdUpper} and e.mjd > {mjdLower};
     """
     pixels = readquery(
         log=log,
@@ -284,7 +286,9 @@ def get_ps_skycells_covering_map(
         dbConn,
         mapId,
         pixelArea,
-        mjdUpper=700000000):
+        mjdLower,
+        mjdUpper=700000000,
+        allSkycells=False):
     """*Get all of the panstarrs skycells covering map*
 
     **Key Arguments:**
@@ -292,32 +296,68 @@ def get_ps_skycells_covering_map(
     - `log` -- logger
     - `dbConn` -- mysql database connection
     - `mapId` -- the primaryId of the map in database 
-    - `pixelArea` -- healpix nside pixel area in square deg    
-    - `mjdUpper` -- return exposures taken before this mjd     
+    - `pixelArea` -- healpix nside pixel area in square deg  
+    - `mjdLower` -- the mjd of the event  
+    - `mjdUpper` -- return exposures taken before this mjd    
+    - `allSkycells` -- return all skycells 
     """
     log.debug('starting the ``get_ps_skycells_covering_map`` function')
 
     from fundamentals.mysql import readquery
-    sqlQuery = f"""
-        SELECT distinct
-            mjd,
-            imageID,
-            skycell,
-            raDeg,
-            decDeg,
-            exp_time,
-            filter,
-            limiting_mag
-        FROM
-            exp_ps e,
-            ps1_skycell_map s,
-            alert_pixels_128 p
-        WHERE
-            s.skycell_id = e.skycell
-                AND e.primaryId = p.exp_ps_id
-                AND p.mapId = {mapId} and e.mjd < {mjdUpper}
-        ORDER BY mjd ASC;
-    """
+
+    if allSkycells:
+        sqlQuery = f"""
+            select distinct
+                mjd,
+                imageID,
+                skycell,
+                raDeg,
+                decDeg,
+                exp_time,
+                filter,
+                limiting_mag
+            FROM
+                exp_ps e,
+                ps1_skycell_map s
+
+            where 
+                s.skycell_id = e.skycell and
+                e.mjd < {mjdUpper} and e.mjd > {mjdLower}
+                and s.skycell_id in (
+
+            SELECT skycell_id
+                FROM
+                    exp_ps e,
+                    ps1_skycell_map s,
+                    alert_pixels_128 p
+                WHERE
+                    s.skycell_id = e.skycell
+                        AND e.primaryId = p.exp_ps_id
+                        AND p.mapId = {mapId} and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
+            )
+            ORDER BY mjd ASC;
+        """
+    else:
+        sqlQuery = f"""
+            SELECT distinct
+                mjd,
+                imageID,
+                skycell,
+                raDeg,
+                decDeg,
+                exp_time,
+                filter,
+                limiting_mag
+            FROM
+                exp_ps e,
+                ps1_skycell_map s,
+                alert_pixels_128 p
+            WHERE
+                s.skycell_id = e.skycell
+                    AND e.primaryId = p.exp_ps_id
+                    AND p.mapId = {mapId} and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
+            ORDER BY mjd ASC;
+        """
 
     psExps = readquery(
         log=log,
@@ -327,7 +367,7 @@ def get_ps_skycells_covering_map(
     )
 
     sqlQuery = f"""
-        select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper};
+        select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper} and e.mjd > {mjdLower};
     """
     pixels = readquery(
         log=log,
