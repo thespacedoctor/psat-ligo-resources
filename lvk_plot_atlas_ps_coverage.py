@@ -106,6 +106,8 @@ def main(arguments=None):
         outputFolder = os.path.dirname(mmap["map"])
         df = pd.DataFrame(atlasExps)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
+        df = pd.DataFrame(psExps)
+        df.to_csv(outputFolder + "/ps_skycells.csv", index=False)
 
         continue
 
