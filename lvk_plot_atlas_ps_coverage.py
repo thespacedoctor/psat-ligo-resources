@@ -100,7 +100,7 @@ def main(arguments=None):
         mapMjd = mmap["mjd_obs"]
 
         # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
-        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14)
+        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allExp=True)
         psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
 
         outputFolder = os.path.dirname(mmap["map"])
@@ -108,8 +108,6 @@ def main(arguments=None):
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
         df.to_csv(outputFolder + "/ps_skycells.csv", index=False)
-
-        continue
 
         coverageStats = []
         for rangeDays in [1, 3, 7]:
