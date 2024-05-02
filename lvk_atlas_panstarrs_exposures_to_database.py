@@ -185,7 +185,7 @@ def import_csv_content_to_database(
             batchSize=200000,
             dateModified=False,
             dateCreated=False,
-            replace=False,
+            replace=True,
             dbSettings=settings["database settings"]
 
         )
