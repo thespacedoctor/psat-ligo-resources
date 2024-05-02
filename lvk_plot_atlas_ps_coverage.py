@@ -108,6 +108,7 @@ def main(arguments=None):
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
         print(df.columns)
+        print("\n\n\n\n\n")
         mask = (df["stacked"] == 1)
         df.loc[mask].to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
         df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
