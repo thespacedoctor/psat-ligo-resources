@@ -283,6 +283,7 @@ def match_exp_to_map_pixels(
 
     # Combine the arrays into a single 2D array
     combined_array = np.concatenate((one, two, three, four), axis=1)
+    print(combined_array.shape)
     # Reshape the combined array to have 100 arrays with 4 rows each
     exps['corners'] = np.reshape(combined_array, (combined_array.shape[1], combined_array.shape[0], -1))
 
