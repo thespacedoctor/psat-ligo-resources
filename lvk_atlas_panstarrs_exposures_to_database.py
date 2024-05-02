@@ -72,7 +72,7 @@ def main(arguments=None):
 
     create_tables_if_not_exist(log=log, dbConn=dbConn)
     tableNames, csvContents = read_csv_files(log=log, pathToExports=pathToExports)
-    import_csv_content_to_database(log=log, dbConn=dbConn, tableNames=tableNames, csvContents=csvContents, settings=settings, pastDays=5)
+    import_csv_content_to_database(log=log, dbConn=dbConn, tableNames=tableNames, csvContents=csvContents, settings=settings, pastDays=5000)
 
     return
 
