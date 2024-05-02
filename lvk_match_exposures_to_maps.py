@@ -255,6 +255,8 @@ def match_exp_to_map_pixels(
     bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
     exps['corners'] = bigList
 
+    print("STARTING calulate_exposure_healpix_ids")
+
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
 
