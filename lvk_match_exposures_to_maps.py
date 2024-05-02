@@ -245,14 +245,17 @@ def match_exp_to_map_pixels(
     print("QUERIES")
     sqlQueryList = []
 
-    exps["sql"] = f"update alert_pixels_128 set exp_{survey}_id = '" + exps["expname"].str + f"' where ipix in (" + exps["ipixs"].str + f") and exp_{survey}_id is null and mapId = {mapId};"
+    exps["sql"] = f"update alert_pixels_128 set exp_{survey}_id = '" + exps["expname"].astype(str).str + f"' where ipix in (" + exps["ipixs"].str + f") and exp_{survey}_id is null and mapId = {mapId};"
 
     from tabulate import tabulate
     print(tabulate(exp.head(3), headers='keys', tablefmt='psql'))
 
-    sys.exit(0)
 
-    for index, row in exps.iterrows():
+astpy
+
+  sys.exit(0)
+
+   for index, row in exps.iterrows():
         if len(row["ipixs"]):
             expName = row["expname"]
 
