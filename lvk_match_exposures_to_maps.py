@@ -73,14 +73,9 @@ def main(arguments=None):
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for index, mmap in enumerate(maps):
 
-        print(mmap)
-
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
-        print("HERE")
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
-        print("HERE")
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4)
-        print("HERE")
 
         if index > 1:
             # Cursor up one line and clear line
@@ -260,6 +255,9 @@ def match_exp_to_map_pixels(
         return
 
     print("CALC EXP IPIX")
+    decCorners = [exps["decDeg"] - pointingSide, exps["decDeg"] + pointingSide]
+    print(decCorners)
+    sys.exit(0)
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     print("DONE")
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
