@@ -360,6 +360,7 @@ def get_ps_skycells_covering_map(
                     AND p.mapId = {mapId} and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
             ORDER BY mjd ASC;
         """
+    print(sqlQuery)
 
     psExps = readquery(
         log=log,
