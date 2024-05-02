@@ -244,15 +244,9 @@ def match_exp_to_map_pixels(
 
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
 
-    # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
     print("QUERIES")
     sqlQueryList = []
-    for index, row in exps.iterrows():
-        if len(row["ipixs"]):
-            expName = row["expname"]
-            ipixs = row["ipixs"]
-            sqlQuery = f"""update alert_pixels_128 set exp_{survey}_id = '{expName}' where ipix in ({ipixs}) and exp_{survey}_id is null and mapId = {mapId};"""
-            sqlQueryList.append(sqlQuery)
+    sqlQueryList[:] = [f"""update alert_pixels_128 set exp_{survey}_id = '{e}' where ipix in ({i}) and exp_{survey}_id is null and mapId = {mapId};""" for e, i in zip(exps["expname", exp["ipix"]]) if len(i)]
     sqlQuery = ("\n".join(sqlQueryList))
 
     print("EXECUTING")
