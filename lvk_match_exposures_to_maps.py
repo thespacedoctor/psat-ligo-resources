@@ -225,7 +225,6 @@ def match_exp_to_map_pixels(
     if not len(exps.index):
         return
 
-    print("CALC EXP IPIX")
     exps["decCorner1"] = exps["decDeg"] - pointingSide / 2
     exps["decCorner2"] = exps["decDeg"] + pointingSide / 2
 
@@ -255,7 +254,6 @@ def match_exp_to_map_pixels(
     exps['corners'] = bigList
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
-    print("DONE")
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
 
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
@@ -265,6 +263,8 @@ def match_exp_to_map_pixels(
 
             ipixs = (",").join(row["ipixs"].astype(str))
             sqlQuery = f"""update alert_pixels_128 set exp_{survey}_id = '{expName}' where ipix in ({ipixs}) and exp_{survey}_id is null and mapId = {mapId}"""
+            print(sqlQuery)
+            sys.exit(0)
             writequery(
                 log=log,
                 sqlQuery=sqlQuery,
