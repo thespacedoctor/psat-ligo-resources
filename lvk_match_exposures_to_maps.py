@@ -238,8 +238,6 @@ def match_exp_to_map_pixels(
     ipix = []
     ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True) for c in bigList]
     exps["ipixs"] = ipix
-
-    exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
 
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
