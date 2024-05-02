@@ -107,6 +107,9 @@ def list_maps_to_be_imported(
     sqlQuery = f"""
         select primaryId, map from alerts where significant = 1 and primaryId not in (select distinct mapId from alert_pixels_128 where mapId is not null);
     """
+    sqlQuery = f"""
+        select primaryId, map from alerts where significant = 1 limit 1;
+    """
     maps = readquery(
         log=log,
         sqlQuery=sqlQuery,
