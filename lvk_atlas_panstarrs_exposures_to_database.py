@@ -232,7 +232,7 @@ def create_tables_if_not_exist(
         dbConn=dbConn,
     )
 
-    sqlQuery = f"""CREATE TABLE `exp_ps` (
+    sqlQuery = f"""CREATE TABLE IF NOT EXISTS `exp_ps` (
       `primaryId` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'An internal counter',
       `exp_time` float DEFAULT NULL,
       `filter` varchar(5) DEFAULT NULL,
