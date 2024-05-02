@@ -107,13 +107,11 @@ def main(arguments=None):
         df = pd.DataFrame(atlasExps)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
-        from tabulate import tabulate
-        print(tabulate(df.head(10), headers='keys', tablefmt='psql'))
 
-        print("\n\n\n\n\n")
-        mask = (df["stacked"] == 1)
-        df.loc[mask].to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
-        df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
+        if len(df.index()):
+            mask = (df["stacked"] == 1)
+            df.loc[mask].to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
+            df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
 
         coverageStats = []
         for rangeDays in [1, 3, 7]:
