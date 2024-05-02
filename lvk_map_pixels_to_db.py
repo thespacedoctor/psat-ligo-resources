@@ -89,10 +89,13 @@ def list_maps_to_be_imported(
       `ipix` int(11) DEFAULT NULL,
       `cumprob` double DEFAULT NULL,
       `prob` double DEFAULT NULL,
-      `exp_ps_id` BIGINT(11) DEFAULT NULL,
-      `exp_atlas_id` BIGINT(11) DEFAULT NULL,
+      `exp_ps_id` bigint(11) DEFAULT NULL,
+      `exp_atlas_id` bigint(11) DEFAULT NULL,
+      `distmu` double DEFAULT NULL,
+      `distsigma` double DEFAULT NULL,
+      `distnorm` double DEFAULT NULL,
       UNIQUE KEY `mapid_ipix` (`mapId`,`ipix`)
-    ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+    ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
     """
     writequery(
         log=log,
@@ -155,10 +158,10 @@ def convert_map_to_list_of_dicts(
     skymap = skymap.loc[mask]
 
     # REMOVE COLUMN FROM DATA FRAME
-    try:
-        skymap.drop(columns=['DISTMU', 'DISTSIGMA', 'DISTNORM'], inplace=True)
-    except:
-        pass
+    # try:
+    #     skymap.drop(columns=['DISTMU', 'DISTSIGMA', 'DISTNORM'], inplace=True)
+    # except:
+    #     pass
 
     skymap["mapId"] = mapId
     skymap["ipix"] = skymap.index
