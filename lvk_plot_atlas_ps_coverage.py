@@ -107,7 +107,7 @@ def main(arguments=None):
         df = pd.DataFrame(atlasExps)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
-        # FIRST CREATE THE MASK
+        print(df.columns)
         mask = (df["stacked"] == 1)
         df.loc[mask].to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
         df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
@@ -360,7 +360,6 @@ def get_ps_skycells_covering_map(
                     AND p.mapId = {mapId} and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
             ORDER BY mjd ASC;
         """
-    print(sqlQuery)
 
     psExps = readquery(
         log=log,
