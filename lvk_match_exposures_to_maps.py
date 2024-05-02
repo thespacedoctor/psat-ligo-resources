@@ -137,8 +137,6 @@ def calulate_exposure_healpix_ids(
             if r < 0.:
                 raCorners[i] = 360. + r
 
-        print(raCorners, series['raCorner1'], series['raCorner2'])
-
         for r in raCorners:
             corners.append(hp.ang2vec(r, d, lonlat=True))
 
@@ -275,6 +273,10 @@ def match_exp_to_map_pixels(
     exps.loc[(exps['raCorner1'] < 0.), 'raCorner1'] = 360. + exps.loc[(exps['raCorner1'] < 0.)]
     exps.loc[(exps['raCorner2'] > 360.), 'raCorner2'] = 720. - exps.loc[(exps['raCorner2'] > 360.)]
     exps.loc[(exps['raCorner2'] < 0.), 'raCorner2'] = 360. + exps.loc[(exps['raCorner2'] < 0.)]
+
+    this = hp.ang2vec(exps['raCorner1'], exps['decCorner1'], lonlat=True)
+    print(this)
+    sys.exit(0)
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     print("DONE")
