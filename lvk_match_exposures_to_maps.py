@@ -125,7 +125,7 @@ def calulate_exposure_healpix_ids(
         pass
 
     print(series["ipixs"])
-    print(series["newIpixs"])
+    print(series["newIpix"])
     print()
 
     return series
