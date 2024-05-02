@@ -83,8 +83,8 @@ def main(arguments=None):
             sys.stdout.flush()
             sys.stdout.write("\x1b[1A\x1b[2K")
 
-        percent = (float(index) / float(len(mmap))) * 100.
-        print(f'{index}/{len(maps)} ({percent:1.1f} done)')
+        percent = (float(index + 1) / float(len(maps))) * 100.
+        print(f'{index+1}/{len(maps)} ({percent:1.1f} done)')
 
     sqlQuery = f"""update exp_atlas set processed = 1 where processed = 0"""
     writequery(
