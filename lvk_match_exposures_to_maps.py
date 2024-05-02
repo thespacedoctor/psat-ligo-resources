@@ -126,9 +126,9 @@ def calulate_exposure_healpix_ids(
         elif d < -90.:
             decCorners[i] = -180 - d
 
-    print(decCorners, series['decCorner1'], series['decCorner2'])
-
     meanDec = np.mean(decCorners)
+
+    print(meanDec, series['decMean'])
 
     for d in decCorners:
         raCorners = [series["raDeg"] - (pointingSide / 2) / np.cos(np.deg2rad(meanDec)),
@@ -264,6 +264,8 @@ def match_exp_to_map_pixels(
     exps.loc[(exps['decCorner1'] < -90.), 'decCorner1'] = -180. - exps.loc[(exps['decCorner1'] < -90.)]
     exps.loc[(exps['decCorner2'] > 90.), 'decCorner2'] = 180. - exps.loc[(exps['decCorner2'] > 90.)]
     exps.loc[(exps['decCorner2'] < -90.), 'decCorner2'] = -180. - exps.loc[(exps['decCorner2'] < -90.)]
+
+    exps['decMean'] = exps[['decCorner1', 'decCorner2']].mean(axis=1)
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     print("DONE")
