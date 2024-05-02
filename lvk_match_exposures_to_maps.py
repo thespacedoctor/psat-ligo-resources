@@ -19,7 +19,7 @@ conda install pymysql -c conda-forge
 You will also need to add database credientials to the gocart.yaml file.
 
 Usage:
-    lvk_match_exposures_to_maps 
+    lvk_match_exposures_to_maps
 
 Options:
 
@@ -74,6 +74,7 @@ def main(arguments=None):
     for index, mmap in enumerate(maps):
 
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
+
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4)
 
@@ -111,7 +112,7 @@ def calulate_exposure_healpix_ids(
 
     - ``series`` -- the dataframe row/series to apply work on
     - ``pointingSide`` -- the length of the side of the square exposure, in degrees
-    - ``nside`` -- size of the healpix pixels to calculate       
+    - ``nside`` -- size of the healpix pixels to calculate
     """
 
     # RETURN ALL HEALPIXELS IN EXPOSURE AREA
@@ -132,7 +133,7 @@ def list_maps_still_to_be_covered(
     **Key Arguments:**
 
     - `dbConn` -- mysql database connection
-    - `log` -- logger  
+    - `log` -- logger
     """
     log.debug('starting the ``list_maps_still_to_be_covered`` function')
 
@@ -166,7 +167,7 @@ def get_exposures_in_maps_temporal_window(
     **Return:**
 
     - `atExps` -- atlas exposures as pandas dataframe
-    - `psExps` -- panstarrs exposures as pandas dataframe    
+    - `psExps` -- panstarrs exposures as pandas dataframe
     """
     log.debug('starting the ``get_exposures_in_maps_temporal_window`` function')
 
@@ -218,13 +219,14 @@ def match_exp_to_map_pixels(
     - `mapId` -- primaryId in the alerts table
     - `survey` -- atlas or ps
     - `nside` -- size of healpix pixel being used
-    - ``pointingSide`` -- the length of the side of the square exposure, in degrees   
+    - ``pointingSide`` -- the length of the side of the square exposure, in degrees
     """
     log.debug('starting the ``match_exp_to_map_pixels`` function')
 
     if not len(exps.index):
         return
 
+    print("EXP IPIX")
     exps["decCorner1"] = exps["decDeg"] - pointingSide / 2
     exps["decCorner2"] = exps["decDeg"] + pointingSide / 2
 
@@ -256,21 +258,22 @@ def match_exp_to_map_pixels(
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
 
+    print("DONE")
+
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
+    print("QUERIES")
     for index, row in exps.iterrows():
         if len(row["ipixs"]):
             expName = row["expname"]
 
             ipixs = (",").join(row["ipixs"].astype(str))
             sqlQuery = f"""update alert_pixels_128 set exp_{survey}_id = '{expName}' where ipix in ({ipixs}) and exp_{survey}_id is null and mapId = {mapId}"""
-            print(sqlQuery)
-            sys.exit(0)
             writequery(
                 log=log,
                 sqlQuery=sqlQuery,
                 dbConn=dbConn
             )
-            print(f'{index}/{len(exps.index)}')
+    print("DONE")
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
     return None
@@ -284,7 +287,7 @@ def create_db_tables(
     **Key Arguments:**
 
     - `dbConn` -- mysql database connection
-    - `log` -- logger       
+    - `log` -- logger
     """
     log.debug('starting the ``create_db_tables`` function')
 
