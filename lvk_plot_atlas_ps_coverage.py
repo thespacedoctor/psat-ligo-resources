@@ -108,13 +108,13 @@ def main(arguments=None):
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
 
-        print(df)
-        print(type(df))
-
-        if len(df.index()):
+        if len(df.index):
             mask = (df["stacked"] == 1)
             df.loc[mask].to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
             df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
+        else:
+            df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
+            df.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
 
         coverageStats = []
         for rangeDays in [1, 3, 7]:
@@ -191,7 +191,7 @@ def list_maps_to_be_plotted(
     **Key Arguments:**
 
     - `dbConn` -- mysql database connection
-    - `log` -- logger  
+    - `log` -- logger
     """
     log.debug('starting the ``list_maps_to_be_plotted`` function')
 
@@ -230,9 +230,9 @@ def get_atlas_exposures_covering_map(
 
     - `log` -- logger
     - `dbConn` -- mysql database connection
-    - `mapId` -- the primaryId of the map in database   
+    - `mapId` -- the primaryId of the map in database
     - `pixelArea` -- healpix nside pixel area in square deg
-    - `mjdLower` -- the mjd of the event  
+    - `mjdLower` -- the mjd of the event
     - `mjdUpper` -- return exposures taken before this mjd
     """
     log.debug('starting the ``get_atlas_exposures_covering_map`` function')
@@ -300,11 +300,11 @@ def get_ps_skycells_covering_map(
 
     - `log` -- logger
     - `dbConn` -- mysql database connection
-    - `mapId` -- the primaryId of the map in database 
-    - `pixelArea` -- healpix nside pixel area in square deg  
-    - `mjdLower` -- the mjd of the event  
-    - `mjdUpper` -- return exposures taken before this mjd    
-    - `allSkycells` -- return all skycells 
+    - `mapId` -- the primaryId of the map in database
+    - `pixelArea` -- healpix nside pixel area in square deg
+    - `mjdLower` -- the mjd of the event
+    - `mjdUpper` -- return exposures taken before this mjd
+    - `allSkycells` -- return all skycells
     """
     log.debug('starting the ``get_ps_skycells_covering_map`` function')
 
@@ -326,7 +326,7 @@ def get_ps_skycells_covering_map(
                 exp_ps e,
                 ps1_skycell_map s
 
-            where 
+            where
                 s.skycell_id = e.skycell and
                 e.mjd < {mjdUpper} and e.mjd > {mjdLower}
                 and s.skycell_id in (
@@ -405,7 +405,7 @@ def get_patches(
 
     - `log` -- logger
     - `exposures` -- atlas or panstarrs exposures or skycells
-    - `pointingSide` -- the pointing side in degrees        
+    - `pointingSide` -- the pointing side in degrees
     """
     log.debug('starting the ``get_patches`` function')
 
