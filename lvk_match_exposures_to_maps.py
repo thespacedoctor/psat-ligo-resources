@@ -245,7 +245,7 @@ def match_exp_to_map_pixels(
     print("QUERIES")
     sqlQueryList = []
 
-    sqlQueryList[:] = [f"""update alert_pixels_128 set exp_{survey}_id = '{exp}' where ipix in ({ipix}) and exp_{survey}_id is null and mapId = {mapId};""" for ipix, exp in zip(exp["ipixs"], exps["expname"]) if len(ipix)]
+    sqlQueryList[:] = [f"""update alert_pixels_128 set exp_{survey}_id = '{exp}' where ipix in ({ipix}) and exp_{survey}_id is null and mapId = {mapId};""" for ipix, exp in zip(exps["ipixs"], exps["expname"]) if len(ipix)]
 
     sqlQuery = ("\n".join(sqlQueryList))
 
