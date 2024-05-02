@@ -75,7 +75,9 @@ def main(arguments=None):
 
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
 
+        print(f"{len(atExps.index)} ATLAS exposures")
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
+        print(f"{len(psExps.index)} PS exposures")
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4)
 
         if index > 1:
