@@ -111,6 +111,11 @@ def read_csv_files(
         filepath = os.path.join(pathToExports, d)
         if os.path.isfile(filepath) and os.path.splitext(filepath)[1] == ".csv":
             if d in allowedCsvs:
+                if "SS" in d:
+                    stacked = {"stacked": 1}
+                else:
+                    stacked = {}
+
                 if "ps1" in d or "pso" in d or "ps2" in d:
                     tableNames.append("exp_ps")
                 if "atlas" in d:
@@ -118,7 +123,7 @@ def read_csv_files(
                 with open(filepath, 'r') as csvFile:
                     csvReader = csv.DictReader(csvFile, dialect='excel', delimiter=',', quotechar='"')
                     dictList = []
-                    dictList[:] = [d for d in csvReader]
+                    dictList[:] = [{**d, **stacked} for d in csvReader]
                     csvContents.append(dictList)
                 csvFile.close()
 
@@ -227,7 +232,7 @@ def create_tables_if_not_exist(
         dbConn=dbConn,
     )
 
-    sqlQuery = f"""CREATE TABLE IF NOT EXISTS `exp_ps` (
+    sqlQuery = f"""CREATE TABLE `exp_ps` (
       `primaryId` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'An internal counter',
       `exp_time` float DEFAULT NULL,
       `filter` varchar(5) DEFAULT NULL,
@@ -237,10 +242,14 @@ def create_tables_if_not_exist(
       `skycell` varchar(20) DEFAULT NULL,
       `dateCreated` datetime DEFAULT current_timestamp(),
       `dateLastModified` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-      `processed` TINYINT(1) NULL DEFAULT 0,
+      `processed` tinyint(1) DEFAULT 0,
+      `stacked` tinyint(4) DEFAULT 0,
       PRIMARY KEY (`primaryId`),
-      UNIQUE KEY `imageid_skycell` (`imageid`,`skycell`)
-    ) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+      UNIQUE KEY `imageid_skycell` (`imageid`,`skycell`),
+      KEY `processed` (`processed`),
+      KEY `skycell` (`skycell`),
+      KEY `mjd` (`mjd`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
     """
 
     writequery(
