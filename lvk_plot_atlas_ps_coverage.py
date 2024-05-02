@@ -316,7 +316,8 @@ def get_ps_skycells_covering_map(
                 decDeg,
                 exp_time,
                 filter,
-                limiting_mag
+                limiting_mag,
+                stacked
             FROM
                 exp_ps e,
                 ps1_skycell_map s
@@ -348,8 +349,7 @@ def get_ps_skycells_covering_map(
                 decDeg,
                 exp_time,
                 filter,
-                limiting_mag,
-                stacked
+                limiting_mag
             FROM
                 exp_ps e,
                 ps1_skycell_map s,
