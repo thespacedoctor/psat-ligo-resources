@@ -140,11 +140,13 @@ def calulate_exposure_healpix_ids(
         for r in raCorners:
             corners.append(hp.ang2vec(r, d, lonlat=True))
 
-    print(corners, series['corners'])
-
     # FLIP CORNERS 3 & 4 SO HEALPY UNDERSTANDS POLYGON SHAPE
     corners = [corners[0], corners[1],
                corners[3], corners[2]]
+
+    print(corners)
+    print(series['corners'])
+    print("\n\n")
 
     # RETURN ALL HEALPIXELS IN EXPOSURE AREA
     try:
@@ -282,7 +284,7 @@ def match_exp_to_map_pixels(
     four = hp.ang2vec(exps['raCorner2'].values, exps['decCorner2'].values, lonlat=True)
 
     bigList = []
-    bigList[:] = [[o, t, th, f] for o, t, th, f in zip(one, two, three, four)]
+    bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
 
     # Combine the arrays into a single 2D array
     exps['corners'] = bigList
