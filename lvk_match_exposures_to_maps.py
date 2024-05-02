@@ -72,9 +72,18 @@ def main(arguments=None):
     nside = 128
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for index, mmap in enumerate(maps):
+
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4)
+
+        if index > 1:
+            # Cursor up one line and clear line
+            sys.stdout.flush()
+            sys.stdout.write("\x1b[1A\x1b[2K")
+
+        percent = (float(index) / float(len(mmap))) * 100.
+        print(f'{index}/{len(maps)} ({percent:1.1f} done)')
 
     sqlQuery = f"""update exp_atlas set processed = 1 where processed = 0"""
     writequery(
