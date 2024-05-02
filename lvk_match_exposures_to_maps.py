@@ -284,10 +284,14 @@ def match_exp_to_map_pixels(
     four = hp.ang2vec(exps['raCorner2'].values, exps['decCorner2'].values, lonlat=True)
 
     bigList = []
+    # 1,2,4,3 IS NOT A BUG ... HEALPY NEEDS THIS ORDER
     bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
-
-    # Combine the arrays into a single 2D array
     exps['corners'] = bigList
+
+    ipix = hp.query_polygon(nside, np.array(
+        bigList), nest=True)
+
+    print(ipix)
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     print("DONE")
