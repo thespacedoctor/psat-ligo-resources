@@ -124,6 +124,10 @@ def calulate_exposure_healpix_ids(
     except:
         pass
 
+    print(series["ipixs"])
+    print(series["newIpixs"])
+    print()
+
     return series
 
 
@@ -260,7 +264,7 @@ def match_exp_to_map_pixels(
     print("STARTING list comprehension")
     ipix = []
     ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True) for c in bigList]
-
+    exps["newIpix"] = ipix
     print("STARTING calulate_exposure_healpix_ids")
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
