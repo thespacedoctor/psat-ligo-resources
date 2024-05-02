@@ -67,6 +67,8 @@ def main(arguments=None):
             a["dbConn"] = val
         log.debug('%s = %s' % (varname, val,))
 
+    create_db_tables(dbConn=dbConn, log=log)
+
     nside = 128
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for index, mmap in enumerate(maps):
@@ -261,6 +263,58 @@ def match_exp_to_map_pixels(
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
     return None
+
+
+def create_db_tables(
+        dbConn,
+        log):
+    """*create the required database tables*
+
+    **Key Arguments:**
+
+    - `dbConn` -- mysql database connection
+    - `log` -- logger       
+    """
+    log.debug('starting the ``create_db_tables`` function')
+
+    from fundamentals.mysql import writequery
+    sqlQuery = f"""CREATE TABLE IF NOT EXISTS `exp_atlas_alert_map_matches` (
+      `expId` bigint(11) NOT NULL,
+      `mapId` bigint(11) NOT NULL,
+      `distmu_90` double DEFAULT NULL,
+      `distsigma_90` double DEFAULT NULL,
+      `distnorm_90` double DEFAULT NULL,
+      `prob_90` double DEFAULT NULL,
+      UNIQUE KEY `expid_mapid_uq` (`expId`,`mapId`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+    """
+    writequery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+    )
+
+    sqlQuery = f"""CREATE TABLE IF NOT EXISTS `exp_ps_alert_map_matches` (
+      `expId` bigint(11) NOT NULL,
+      `mapId` bigint(11) NOT NULL,
+      `distmu_90` double DEFAULT NULL,
+      `distsigma_90` double DEFAULT NULL,
+      `distnorm_90` double DEFAULT NULL,
+      `prob_90` double DEFAULT NULL,
+      UNIQUE KEY `expid_mapid_uq` (`expId`,`mapId`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+    """
+    writequery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+    )
+
+    log.debug('completed the ``create_db_tables`` function')
+    return None
+
+# use the tab-trigger below for new function
+# xt-def-function
 
 
 if __name__ == '__main__':
