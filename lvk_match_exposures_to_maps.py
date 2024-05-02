@@ -237,7 +237,8 @@ def match_exp_to_map_pixels(
 
     ipix = []
     ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True) for c in bigList]
-    exps["ipixs"] = (",").join(ipix.astype(str))
+    exps["ipixs"] = (",").join(map(str, ipix))
+
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
 
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
