@@ -237,12 +237,20 @@ def match_exp_to_map_pixels(
 
     ipix = []
     ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True) for c in bigList]
-    exps["ipixs"] = ipix
+    exps["ipixs"] = (",").join(ipix.astype(str))
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
 
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
     print("QUERIES")
     sqlQueryList = []
+
+    exps["sql"] = f"update alert_pixels_128 set exp_{survey}_id = '" + exps["expname"].str + f"' where ipix in (" + exps["ipixs"].str + f") and exp_{survey}_id is null and mapId = {mapId};"
+
+    from tabulate import tabulate
+    print(tabulate(exp.head(3), headers='keys', tablefmt='psql'))
+
+    sys.exit(0)
+
     for index, row in exps.iterrows():
         if len(row["ipixs"]):
             expName = row["expname"]
