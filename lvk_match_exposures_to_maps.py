@@ -243,10 +243,13 @@ def match_exp_to_map_pixels(
 
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
     print("QUERIES")
-    sqlQueryList = []
 
-    sqlQueryList[:] = [("").join(map(str, ["update alert_pixels_128 set exp_", survey, "_id = '", exp, "' where ipix in (", ipix, ") and exp_", survey, "_id is null and mapId = ", mapId, ";"])) for ipix, exp in zip(exps["ipixs"], exps["expname"]) if len(ipix)]
-
+    for index, row in exps.iterrows():
+        if len(row["ipixs"]):
+            expName = row["expname"]
+            ipixs = row["ipixs"]
+            sqlQuery = f"""update alert_pixels_128 set exp_{survey}_id = '{expName}' where ipix in ({ipixs}) and exp_{survey}_id is null and mapId = {mapId};"""
+            sqlQueryList.append(sqlQuery)
     sqlQuery = ("\n".join(sqlQueryList))
 
     print("EXECUTING")
