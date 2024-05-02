@@ -276,11 +276,13 @@ def match_exp_to_map_pixels(
     exps.loc[(exps['raCorner2'] > 360.), 'raCorner2'] = 720. - exps.loc[(exps['raCorner2'] > 360.)]
     exps.loc[(exps['raCorner2'] < 0.), 'raCorner2'] = 360. + exps.loc[(exps['raCorner2'] < 0.)]
 
-    one = hp.ang2vec(exps['raCorner1'], exps['decCorner1'], lonlat=True)
-    two = hp.ang2vec(exps['raCorner2'], exps['decCorner1'], lonlat=True)
-    three = hp.ang2vec(exps['raCorner1'], exps['decCorner2'], lonlat=True)
-    four = hp.ang2vec(exps['raCorner2'], exps['decCorner2'], lonlat=True)
+    one = hp.ang2vec(exps['raCorner1'].values, exps['decCorner1'].values, lonlat=True)
+    two = hp.ang2vec(exps['raCorner2'].values, exps['decCorner1'].values, lonlat=True)
+    three = hp.ang2vec(exps['raCorner1'].values, exps['decCorner2'].values, lonlat=True)
+    four = hp.ang2vec(exps['raCorner2'].values, exps['decCorner2'].values, lonlat=True)
 
+    print(exps['raCorner1'].shape)
+    print(one.shape)
     print(np.vstack((one, two, three, four)).shape)
     print(np.vstack((one, two, three, four)).T.shape)
 
