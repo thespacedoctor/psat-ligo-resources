@@ -243,7 +243,7 @@ def match_exp_to_map_pixels(
 
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
     print("QUERIES")
-
+    sqlQueryList = []
     for index, row in exps.iterrows():
         if len(row["ipixs"]):
             expName = row["expname"]
