@@ -367,12 +367,16 @@ def get_ps_skycells_covering_map(
             ORDER BY mjd ASC;
         """
 
+    print(sqlQuery)
+
     psExps = readquery(
         log=log,
         sqlQuery=sqlQuery,
         dbConn=dbConn,
         quiet=False
     )
+
+    print("DONE")
 
     sqlQuery = f"""
         select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper} and e.mjd > {mjdLower};
