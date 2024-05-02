@@ -140,7 +140,9 @@ def calulate_exposure_healpix_ids(
         for r in raCorners:
             corners.append(hp.ang2vec(r, d, lonlat=True))
 
-     # FLIP CORNERS 3 & 4 SO HEALPY UNDERSTANDS POLYGON SHAPE
+    print(corners, series['corners'])
+
+    # FLIP CORNERS 3 & 4 SO HEALPY UNDERSTANDS POLYGON SHAPE
     corners = [corners[0], corners[1],
                corners[3], corners[2]]
 
@@ -274,9 +276,11 @@ def match_exp_to_map_pixels(
     exps.loc[(exps['raCorner2'] > 360.), 'raCorner2'] = 720. - exps.loc[(exps['raCorner2'] > 360.)]
     exps.loc[(exps['raCorner2'] < 0.), 'raCorner2'] = 360. + exps.loc[(exps['raCorner2'] < 0.)]
 
-    this = hp.ang2vec(exps['raCorner1'], exps['decCorner1'], lonlat=True)
-    print(this)
-    sys.exit(0)
+    one = hp.ang2vec(exps['raCorner1'], exps['decCorner1'], lonlat=True)
+    two = hp.ang2vec(exps['raCorner2'], exps['decCorner1'], lonlat=True)
+    three = hp.ang2vec(exps['raCorner1'], exps['decCorner2'], lonlat=True)
+    four = hp.ang2vec(exps['raCorner2'], exps['decCorner2'], lonlat=True)
+    exps['corners'] = np.vstack((one, two, three, four)).T
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     print("DONE")
