@@ -114,44 +114,10 @@ def calulate_exposure_healpix_ids(
     - ``nside`` -- size of the healpix pixels to calculate       
     """
 
-    # DETERMINE THE CORNERS INDIVIDUAL EXPOSURE AS MAPPED TO THE
-    decCorners = [series["decDeg"] - pointingSide / 2,
-                  series["decDeg"] + pointingSide / 2]
-
-    corners = []
-
-    for i, d in enumerate(decCorners):
-        if d > 90.:
-            decCorners[i] = 180. - d
-        elif d < -90.:
-            decCorners[i] = -180 - d
-
-    meanDec = np.mean(decCorners)
-
-    for d in decCorners:
-        raCorners = [series["raDeg"] - (pointingSide / 2) / np.cos(np.deg2rad(meanDec)),
-                     series["raDeg"] + (pointingSide / 2) / np.cos(np.deg2rad(meanDec))]
-        for i, r in enumerate(raCorners):
-            if r > 360.:
-                raCorners[i] = 720. - r
-            if r < 0.:
-                raCorners[i] = 360. + r
-
-        for r in raCorners:
-            corners.append(hp.ang2vec(r, d, lonlat=True))
-
-    # FLIP CORNERS 3 & 4 SO HEALPY UNDERSTANDS POLYGON SHAPE
-    corners = [corners[0], corners[1],
-               corners[3], corners[2]]
-
-    print(corners)
-    print(series['corners'])
-    print("\n\n")
-
     # RETURN ALL HEALPIXELS IN EXPOSURE AREA
     try:
         series["ipixs"] = hp.query_polygon(nside, np.array(
-            corners), nest=True)
+            series['corners']), nest=True)
     except:
         pass
 
@@ -287,11 +253,6 @@ def match_exp_to_map_pixels(
     # 1,2,4,3 IS NOT A BUG ... HEALPY NEEDS THIS ORDER
     bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
     exps['corners'] = bigList
-
-    ipix = hp.query_polygon(nside, np.array(
-        bigList), nest=True)
-
-    print(ipix)
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     print("DONE")
