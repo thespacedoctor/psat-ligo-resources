@@ -280,6 +280,10 @@ def match_exp_to_map_pixels(
     two = hp.ang2vec(exps['raCorner2'], exps['decCorner1'], lonlat=True)
     three = hp.ang2vec(exps['raCorner1'], exps['decCorner2'], lonlat=True)
     four = hp.ang2vec(exps['raCorner2'], exps['decCorner2'], lonlat=True)
+
+    print(np.vstack((one, two, three, four)).shape)
+    print(np.vstack((one, two, three, four)).T.shape)
+
     exps['corners'] = np.vstack((one, two, three, four)).T
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
