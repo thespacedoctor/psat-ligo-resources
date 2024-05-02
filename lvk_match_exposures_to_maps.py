@@ -274,6 +274,7 @@ def match_exp_to_map_pixels(
                 sqlQuery=sqlQuery,
                 dbConn=dbConn
             )
+            print(sqlQuery)
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
     return None
