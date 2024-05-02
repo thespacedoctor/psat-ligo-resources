@@ -107,7 +107,8 @@ def main(arguments=None):
         df = pd.DataFrame(atlasExps)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
-        print(df.columns())
+        from tabulate import tabulate
+        print(tabulate(df.head(10), headers='keys', tablefmt='psql'))
 
         print("\n\n\n\n\n")
         mask = (df["stacked"] == 1)
