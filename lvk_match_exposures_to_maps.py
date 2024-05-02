@@ -104,33 +104,6 @@ def main(arguments=None):
     return
 
 
-def calulate_exposure_healpix_ids(
-        series,
-        pointingSide,
-        nside):
-    """*calculate the covered healpix IDs for exposures in dataframe*
-
-    **Key Arguments:**
-
-    - ``series`` -- the dataframe row/series to apply work on
-    - ``pointingSide`` -- the length of the side of the square exposure, in degrees
-    - ``nside`` -- size of the healpix pixels to calculate
-    """
-
-    # RETURN ALL HEALPIXELS IN EXPOSURE AREA
-    try:
-        series["ipixs"] = hp.query_polygon(nside, np.array(
-            series['corners']), nest=True)
-    except:
-        pass
-
-    print(series["ipixs"])
-    print(series["newIpix"])
-    print()
-
-    return series
-
-
 def list_maps_still_to_be_covered(
         dbConn,
         log):
@@ -232,59 +205,59 @@ def match_exp_to_map_pixels(
     if not len(exps.index):
         return
 
-    print("EXP IPIX")
-    exps["decCorner1"] = exps["decDeg"] - pointingSide / 2
-    exps["decCorner2"] = exps["decDeg"] + pointingSide / 2
+    tmpDf = exps.copy()
 
-    exps.loc[(exps['decCorner1'] > 90.), 'decCorner1'] = 180. - exps.loc[(exps['decCorner1'] > 90.)]
-    exps.loc[(exps['decCorner1'] < -90.), 'decCorner1'] = -180. - exps.loc[(exps['decCorner1'] < -90.)]
-    exps.loc[(exps['decCorner2'] > 90.), 'decCorner2'] = 180. - exps.loc[(exps['decCorner2'] > 90.)]
-    exps.loc[(exps['decCorner2'] < -90.), 'decCorner2'] = -180. - exps.loc[(exps['decCorner2'] < -90.)]
+    tmpDf["decCorner1"] = tmpDf["decDeg"] - pointingSide / 2
+    tmpDf["decCorner2"] = tmpDf["decDeg"] + pointingSide / 2
 
-    exps['decMean'] = exps[['decCorner1', 'decCorner2']].mean(axis=1)
+    tmpDf.loc[(tmpDf['decCorner1'] > 90.), 'decCorner1'] = 180. - tmpDf.loc[(tmpDf['decCorner1'] > 90.)]
+    tmpDf.loc[(tmpDf['decCorner1'] < -90.), 'decCorner1'] = -180. - tmpDf.loc[(tmpDf['decCorner1'] < -90.)]
+    tmpDf.loc[(tmpDf['decCorner2'] > 90.), 'decCorner2'] = 180. - tmpDf.loc[(tmpDf['decCorner2'] > 90.)]
+    tmpDf.loc[(tmpDf['decCorner2'] < -90.), 'decCorner2'] = -180. - tmpDf.loc[(tmpDf['decCorner2'] < -90.)]
 
-    exps['raCorner1'] = exps["raDeg"] - (pointingSide / 2) / np.cos(np.deg2rad(exps['decMean']))
-    exps['raCorner2'] = exps["raDeg"] + (pointingSide / 2) / np.cos(np.deg2rad(exps['decMean']))
+    tmpDf['decMean'] = tmpDf[['decCorner1', 'decCorner2']].mean(axis=1)
 
-    exps.loc[(exps['raCorner1'] > 360.), 'raCorner1'] = 720. - exps.loc[(exps['raCorner1'] > 360.)]
-    exps.loc[(exps['raCorner1'] < 0.), 'raCorner1'] = 360. + exps.loc[(exps['raCorner1'] < 0.)]
-    exps.loc[(exps['raCorner2'] > 360.), 'raCorner2'] = 720. - exps.loc[(exps['raCorner2'] > 360.)]
-    exps.loc[(exps['raCorner2'] < 0.), 'raCorner2'] = 360. + exps.loc[(exps['raCorner2'] < 0.)]
+    tmpDf['raCorner1'] = tmpDf["raDeg"] - (pointingSide / 2) / np.cos(np.deg2rad(tmpDf['decMean']))
+    tmpDf['raCorner2'] = tmpDf["raDeg"] + (pointingSide / 2) / np.cos(np.deg2rad(tmpDf['decMean']))
 
-    one = hp.ang2vec(exps['raCorner1'].values, exps['decCorner1'].values, lonlat=True)
-    two = hp.ang2vec(exps['raCorner2'].values, exps['decCorner1'].values, lonlat=True)
-    three = hp.ang2vec(exps['raCorner1'].values, exps['decCorner2'].values, lonlat=True)
-    four = hp.ang2vec(exps['raCorner2'].values, exps['decCorner2'].values, lonlat=True)
+    tmpDf.loc[(tmpDf['raCorner1'] > 360.), 'raCorner1'] = 720. - tmpDf.loc[(tmpDf['raCorner1'] > 360.)]
+    tmpDf.loc[(tmpDf['raCorner1'] < 0.), 'raCorner1'] = 360. + tmpDf.loc[(tmpDf['raCorner1'] < 0.)]
+    tmpDf.loc[(tmpDf['raCorner2'] > 360.), 'raCorner2'] = 720. - tmpDf.loc[(tmpDf['raCorner2'] > 360.)]
+    tmpDf.loc[(tmpDf['raCorner2'] < 0.), 'raCorner2'] = 360. + tmpDf.loc[(tmpDf['raCorner2'] < 0.)]
+
+    one = hp.ang2vec(tmpDf['raCorner1'].values, tmpDf['decCorner1'].values, lonlat=True)
+    two = hp.ang2vec(tmpDf['raCorner2'].values, tmpDf['decCorner1'].values, lonlat=True)
+    three = hp.ang2vec(tmpDf['raCorner1'].values, tmpDf['decCorner2'].values, lonlat=True)
+    four = hp.ang2vec(tmpDf['raCorner2'].values, tmpDf['decCorner2'].values, lonlat=True)
 
     bigList = []
     # 1,2,4,3 IS NOT A BUG ... HEALPY NEEDS THIS ORDER
     bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
-    exps['corners'] = bigList
+    tmpDf['corners'] = bigList
 
-    print("STARTING list comprehension")
     ipix = []
     ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True) for c in bigList]
-    exps["newIpix"] = ipix
-    print("STARTING calulate_exposure_healpix_ids")
+    exps["ipixs"] = ipix
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
 
-    print("DONE")
-
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
     print("QUERIES")
+    sqlQueryList = []
     for index, row in exps.iterrows():
         if len(row["ipixs"]):
             expName = row["expname"]
 
             ipixs = (",").join(row["ipixs"].astype(str))
-            sqlQuery = f"""update alert_pixels_128 set exp_{survey}_id = '{expName}' where ipix in ({ipixs}) and exp_{survey}_id is null and mapId = {mapId}"""
-            writequery(
-                log=log,
-                sqlQuery=sqlQuery,
-                dbConn=dbConn
-            )
+            sqlQuery = f"""update alert_pixels_128 set exp_{survey}_id = '{expName}' where ipix in ({ipixs}) and exp_{survey}_id is null and mapId = {mapId};"""
+            sqlQueryList.append(sqlQuery)
+    sqlQuery = ("\n".join(sqlQueryList))
+    writequery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
+    )
     print("DONE")
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
