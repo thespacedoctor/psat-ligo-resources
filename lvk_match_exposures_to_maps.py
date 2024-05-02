@@ -75,9 +75,7 @@ def main(arguments=None):
 
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
 
-        print(f"{len(atExps.index)} ATLAS exposures")
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
-        print(f"{len(psExps.index)} PS exposures")
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4)
 
         if index > 1:
@@ -243,21 +241,15 @@ def match_exp_to_map_pixels(
     exps["ipixs"] = ipixStr
 
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
-
-    print("QUERIES")
     sqlQueryList = []
     sqlQueryList[:] = [f"""update alert_pixels_128 set exp_{survey}_id = '{e}' where ipix in ({i}) and exp_{survey}_id is null and mapId = {mapId};""" for e, i in zip(exps["expname"], exps["ipixs"]) if len(i)]
     sqlQuery = ("\n".join(sqlQueryList))
 
-    print(sqlQuery)
-
-    print("EXECUTING")
     writequery(
         log=log,
         sqlQuery=sqlQuery,
         dbConn=dbConn
     )
-    print("DONE")
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
     return None
