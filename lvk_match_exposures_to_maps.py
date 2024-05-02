@@ -257,8 +257,8 @@ def match_exp_to_map_pixels(
         return
 
     print("CALC EXP IPIX")
-    exps["decCorner1"] = exps["decDeg"] - pointingSide
-    exps["decCorner2"] = exps["decDeg"] + pointingSide
+    exps["decCorner1"] = exps["decDeg"] - pointingSide / 2
+    exps["decCorner2"] = exps["decDeg"] + pointingSide / 2
 
     exps.loc[(exps['decCorner1'] > 90.), 'decCorner1'] = 180. - exps.loc[(exps['decCorner1'] > 90.)]
     exps.loc[(exps['decCorner1'] < -90.), 'decCorner1'] = -180. - exps.loc[(exps['decCorner1'] < -90.)]
