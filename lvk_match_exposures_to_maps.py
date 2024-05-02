@@ -245,20 +245,8 @@ def match_exp_to_map_pixels(
     print("QUERIES")
     sqlQueryList = []
 
-    exps["sql"] = f"update alert_pixels_128 set exp_{survey}_id = '" + exps["expname"].map(str) + f"' where ipix in (" + exps["ipixs"] + f") and exp_{survey}_id is null and mapId = {mapId};"
+    sqlQueryList[:] = [f"""update alert_pixels_128 set exp_{survey}_id = '{exp}' where ipix in ({ipix}) and exp_{survey}_id is null and mapId = {mapId};""" for ipix, exp in zip(exp["ipixs"], exps["expname"]) if len(ipix)]
 
-    from tabulate import tabulate
-    print(tabulate(exp.head(3), headers='keys', tablefmt='psql'))
-
-    sys.exit(0)
-
-    for index, row in exps.iterrows():
-        if len(row["ipixs"]):
-            expName = row["expname"]
-
-            ipixs = (",").join(row["ipixs"].astype(str))
-            sqlQuery = f"""update alert_pixels_128 set exp_{survey}_id = '{expName}' where ipix in ({ipixs}) and exp_{survey}_id is null and mapId = {mapId};"""
-            sqlQueryList.append(sqlQuery)
     sqlQuery = ("\n".join(sqlQueryList))
 
     print("EXECUTING")
