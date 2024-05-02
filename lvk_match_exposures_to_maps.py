@@ -250,12 +250,9 @@ def match_exp_to_map_pixels(
     from tabulate import tabulate
     print(tabulate(exp.head(3), headers='keys', tablefmt='psql'))
 
+    sys.exit(0)
 
-astpy
-
-  sys.exit(0)
-
-   for index, row in exps.iterrows():
+    for index, row in exps.iterrows():
         if len(row["ipixs"]):
             expName = row["expname"]
 
