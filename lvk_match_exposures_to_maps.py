@@ -126,6 +126,8 @@ def calulate_exposure_healpix_ids(
         elif d < -90.:
             decCorners[i] = -180 - d
 
+    print(decCorners, series['decCorner1'], series['decCorner2'])
+
     meanDec = np.mean(decCorners)
 
     for d in decCorners:
@@ -255,9 +257,14 @@ def match_exp_to_map_pixels(
         return
 
     print("CALC EXP IPIX")
-    decCorners = [exps["decDeg"] - pointingSide, exps["decDeg"] + pointingSide]
-    print(decCorners)
-    sys.exit(0)
+    exps["decCorner1"] = exps["decDeg"] - pointingSide
+    exps["decCorner2"] = exps["decDeg"] + pointingSide
+
+    exps.loc[(exps['decCorner1'] > 90.), 'decCorner1'] = 180. - exps.loc[(exps['decCorner1'] > 90.)]
+    exps.loc[(exps['decCorner1'] < -90.), 'decCorner1'] = -180. - exps.loc[(exps['decCorner1'] < -90.)]
+    exps.loc[(exps['decCorner2'] > 90.), 'decCorner2'] = 180. - exps.loc[(exps['decCorner2'] > 90.)]
+    exps.loc[(exps['decCorner2'] < -90.), 'decCorner2'] = -180. - exps.loc[(exps['decCorner2'] < -90.)]
+
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     print("DONE")
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
