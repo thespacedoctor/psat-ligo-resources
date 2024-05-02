@@ -281,10 +281,11 @@ def match_exp_to_map_pixels(
     three = hp.ang2vec(exps['raCorner1'].values, exps['decCorner2'].values, lonlat=True)
     four = hp.ang2vec(exps['raCorner2'].values, exps['decCorner2'].values, lonlat=True)
 
-    print(one.shape)
+    bigList = []
+    bigList[:] = [[o, t, th, f] for o, t, th, f in zip(one, two, three, four)]
 
     # Combine the arrays into a single 2D array
-    exps['corners'] = np.concatenate((one, two, three, four), axis=1)
+    exps['corners'] = bigList
 
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     print("DONE")
