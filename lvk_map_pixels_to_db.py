@@ -83,6 +83,7 @@ def list_maps_to_be_imported(
     log.debug('starting the ``list_maps_to_be_imported`` function')
 
     from fundamentals.mysql import writequery
+    from fundamentals.mysql import readquery
 
     sqlQuery = f"""CREATE TABLE IF NOT EXISTS `alert_pixels_128` (
       `mapId` int(11) DEFAULT NULL,
@@ -103,7 +104,6 @@ def list_maps_to_be_imported(
         dbConn=dbConn
     )
 
-    from fundamentals.mysql import readquery
     sqlQuery = f"""
         select primaryId, map from alerts where significant = 1 and primaryId not in (select distinct mapId from alert_pixels_128 where mapId is not null);
     """
@@ -206,7 +206,7 @@ def import_maps_to_db(
             dateModified=False,
             dateCreated=False,
             batchSize=2500,
-            replace=False,
+            replace=True,
             dbSettings=settings["database settings"]
         )
 
