@@ -107,7 +107,10 @@ def main(arguments=None):
         df = pd.DataFrame(atlasExps)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
-        df.to_csv(outputFolder + "/ps_skycells.csv", index=False)
+        # FIRST CREATE THE MASK
+        mask = (df["stacked"] == 1)
+        df.loc[mask].to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
+        df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
 
         coverageStats = []
         for rangeDays in [1, 3, 7]:
@@ -345,7 +348,8 @@ def get_ps_skycells_covering_map(
                 decDeg,
                 exp_time,
                 filter,
-                limiting_mag
+                limiting_mag,
+                stacked
             FROM
                 exp_ps e,
                 ps1_skycell_map s,
