@@ -262,9 +262,7 @@ def match_exp_to_map_pixels(
     print("CALC EXP IPIX")
     exps = exps.apply(calulate_exposure_healpix_ids, axis=1, pointingSide=pointingSide, nside=nside)
     print("DONE")
-    print("DROPPING NULLS")
     exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
-    print("DONE")
 
     # ONLY DO THIS FOR SMALL DATAFRAMES - THIS IS AN ANTIPATTERN
     for index, row in exps.iterrows():
@@ -278,6 +276,7 @@ def match_exp_to_map_pixels(
                 sqlQuery=sqlQuery,
                 dbConn=dbConn
             )
+            print(f'{index}/{len(exps.index)}')
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
     return None
