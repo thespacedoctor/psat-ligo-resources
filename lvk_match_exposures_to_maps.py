@@ -251,6 +251,8 @@ def match_exp_to_map_pixels(
             sqlQuery = f"""update alert_pixels_128 set exp_{survey}_id = '{expName}' where ipix in ({ipixs}) and exp_{survey}_id is null and mapId = {mapId};"""
             sqlQueryList.append(sqlQuery)
     sqlQuery = ("\n".join(sqlQueryList))
+
+    print("EXECUTING")
     writequery(
         log=log,
         sqlQuery=sqlQuery,
