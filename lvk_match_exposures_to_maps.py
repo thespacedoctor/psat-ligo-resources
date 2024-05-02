@@ -283,8 +283,8 @@ def match_exp_to_map_pixels(
 
     print(exps['raCorner1'].shape)
     print(one.shape)
-    print(np.vstack((one, two, three, four)).shape)
-    print(np.vstack((one, two, three, four)).T.shape)
+    print(np.vstack(one, two, three, four).shape)
+    print(np.vstack(one, two, three, four).T.shape)
 
     exps['corners'] = np.vstack((one, two, three, four)).T
 
