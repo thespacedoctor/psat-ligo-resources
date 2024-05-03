@@ -78,6 +78,8 @@ def main(arguments=None):
         from tabulate import tabulate
         print(tabulate(mapDF, headers='keys', tablefmt='psql'))
 
+        sys.exit(0)
+
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
 
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
