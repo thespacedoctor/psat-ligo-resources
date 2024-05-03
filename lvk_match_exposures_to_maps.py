@@ -75,17 +75,12 @@ def main(arguments=None):
 
         mapDF = get_the_map_as_healpix_dataframe(log=log, dbConn=dbConn, mapId=mmap["mapId"])
 
-        from tabulate import tabulate
-        print(tabulate(mapDF, headers='keys', tablefmt='psql'))
-
-        sys.exit(0)
-
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
 
-        match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
-        match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4)
+        match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46, mapDF=mapDF, settings=settings)
+        match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4, mapDF=mapDF, settings=settings)
 
-        if index > 1:
+        if index > 0:
             # Cursor up one line and clear line
             sys.stdout.flush()
             sys.stdout.write("\x1b[1A\x1b[2K")
@@ -160,7 +155,7 @@ def get_exposures_in_maps_temporal_window(
     start = mmap["mjd_obs"]
 
     sqlQuery = f"""
-        SELECT primaryId as expname, raDeg, decDeg FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
+        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
     """
     atExps = readquery(
         log=log,
@@ -171,7 +166,7 @@ def get_exposures_in_maps_temporal_window(
     atExps = pd.DataFrame(atExps)
 
     sqlQuery = f"""
-        SELECT e.primaryId as expname, raDeg, decDeg FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
+        SELECT e.primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
     """
     psExps = readquery(
         log=log,
@@ -192,7 +187,9 @@ def match_exp_to_map_pixels(
         mapId,
         survey,
         nside,
-        pointingSide):
+        pointingSide,
+        mapDF,
+        settings):
     """*match the exposures to the event maps pixels and record in lvk database*
 
     **Key Arguments:**
@@ -204,8 +201,12 @@ def match_exp_to_map_pixels(
     - `survey` -- atlas or ps
     - `nside` -- size of healpix pixel being used
     - ``pointingSide`` -- the length of the side of the square exposure, in degrees
+    - ``mapDF`` -- the map as a dataframe ... one row per ipix
     """
     log.debug('starting the ``match_exp_to_map_pixels`` function')
+
+    import pandas as pd
+    from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
 
     if not len(exps.index):
         return
@@ -243,19 +244,36 @@ def match_exp_to_map_pixels(
     ipix = []
     ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True) for c in bigList]
 
-    ipixStr = []
-    ipixStr[:] = [(",").join(map(str, i)) for i in ipix]
-    exps["ipixs"] = ipixStr
+    exps["ipix"] = ipix
 
-    exps.dropna(axis='index', how='any', subset=['ipixs'], inplace=True)
-    sqlQueryList = []
-    sqlQueryList[:] = [f"""update alert_pixels_128 set exp_{survey}_id = '{e}' where ipix in ({i}) and exp_{survey}_id is null and mapId = {mapId};""" for e, i in zip(exps["expname"], exps["ipixs"]) if len(i)]
-    sqlQuery = ("\n".join(sqlQueryList))
+    exps.dropna(axis='index', how='any', subset=['ipix'], inplace=True)
+    # EXPLODE THE DF TO ONE ROW PER IPIX
+    exps = exps.explode('ipix')
 
-    writequery(
+    expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
+
+    # SORT BY COLUMN NAME
+    expMapDf.sort_values(['mjd'], inplace=True)
+
+    firstIpixCoverage = expMapDf.drop_duplicates(subset=['ipix'])
+
+    # RENAME SOME INDIVIDUALLY
+    firstIpixCoverage[f"exp_{survey}_id"] = firstIpixCoverage["expname"]
+    firstIpixCoverage = firstIpixCoverage[[f'exp_{survey}_id', 'mapId', 'ipix']]
+
+    firstIpixCoverage = firstIpixCoverage.to_dict('records')
+
+    # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
+    insert_list_of_dictionaries_into_database_tables(
+        dbConn=dbConn,
         log=log,
-        sqlQuery=sqlQuery,
-        dbConn=dbConn
+        dictList=firstIpixCoverage,
+        dbTableName="alert_pixels_128",
+        dateModified=False,
+        dateCreated=False,
+        batchSize=200000,
+        replace=True,
+        dbSettings=settings["database settings"]
     )
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
