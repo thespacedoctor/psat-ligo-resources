@@ -73,6 +73,11 @@ def main(arguments=None):
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for index, mmap in enumerate(maps):
 
+        mapDF = self.get_the_map_as_healpix_dataframe(log=log, dbConn=dbConn, mapId=mmap["mapId"])
+
+        from tabulate import tabulate
+        print(tabulate(mapDF, headers='keys', tablefmt='psql'))
+
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
 
         match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46)
@@ -84,7 +89,7 @@ def main(arguments=None):
             sys.stdout.write("\x1b[1A\x1b[2K")
 
         percent = (float(index + 1) / float(len(maps))) * 100.
-        print(f'{index+1}/{len(maps)} ({percent:1.1f} done)')
+        print(f'{index+1x}/{len(maps)} ({percent:1.1f} done)')
 
     sqlQuery = f"""update exp_atlas set processed = 1 where processed = 0"""
     writequery(
@@ -302,6 +307,49 @@ def create_db_tables(
 
     log.debug('completed the ``create_db_tables`` function')
     return None
+
+
+def get_the_map_as_healpix_dataframe(
+        dbConn,
+        log,
+        mapId):
+    """*summary of function*
+
+    **Key Arguments:**
+
+    - `dbConn` -- mysql database connection
+    - `log` -- logger,
+        mapId
+
+    **Usage:**
+
+    ```eval_rst
+    .. todo::
+
+            add usage info
+            create a sublime snippet for usage
+    ```
+
+    ```python
+    usage code 
+    ```           
+    """
+    log.debug('starting the ``get_the_map_as_healpix_dataframe`` function')
+
+    from fundamentals.mysql import readquery
+    sqlQuery = f"""
+        select * from update alert_pixels_128 with mapId = {mapId};
+    """
+    rows = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
+    )
+    mapDF = pd.DataFrame(atExps)
+
+    log.debug('completed the ``get_the_map_as_healpix_dataframe`` function')
+    return mapDF
 
 # use the tab-trigger below for new function
 # xt-def-function
