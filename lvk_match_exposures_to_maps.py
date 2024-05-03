@@ -296,6 +296,8 @@ def match_exp_to_map_pixels(
     }
     expStats.rename(columns=renames, inplace=True)
 
+    from tabulate import tabulate
+
     print(tabulate(expStats.head(1000), headers='keys', tablefmt='psql'))
     sys.exit(0)
 
