@@ -350,7 +350,7 @@ def get_the_map_as_healpix_dataframe(
         dbConn=dbConn,
         quiet=False
     )
-    mapDF = pd.DataFrame(atExps)
+    mapDF = pd.DataFrame(rows)
 
     log.debug('completed the ``get_the_map_as_healpix_dataframe`` function')
     return mapDF
