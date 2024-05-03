@@ -340,7 +340,7 @@ def get_the_map_as_healpix_dataframe(
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
-        select * from update alert_pixels_128 where mapId = {mapId};
+        select * from alert_pixels_128 where mapId = {mapId};
     """
     rows = readquery(
         log=log,
