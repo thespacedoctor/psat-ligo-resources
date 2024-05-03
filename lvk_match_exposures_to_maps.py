@@ -339,6 +339,8 @@ def get_the_map_as_healpix_dataframe(
     log.debug('starting the ``get_the_map_as_healpix_dataframe`` function')
 
     from fundamentals.mysql import readquery
+    import pandas as pd
+
     sqlQuery = f"""
         select * from alert_pixels_128 where mapId = {mapId};
     """
