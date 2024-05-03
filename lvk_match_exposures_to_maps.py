@@ -73,7 +73,7 @@ def main(arguments=None):
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for index, mmap in enumerate(maps):
 
-        mapDF = self.get_the_map_as_healpix_dataframe(log=log, dbConn=dbConn, mapId=mmap["mapId"])
+        mapDF = get_the_map_as_healpix_dataframe(log=log, dbConn=dbConn, mapId=mmap["mapId"])
 
         from tabulate import tabulate
         print(tabulate(mapDF, headers='keys', tablefmt='psql'))
