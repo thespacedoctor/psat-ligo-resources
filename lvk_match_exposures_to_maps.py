@@ -282,13 +282,21 @@ def match_exp_to_map_pixels(
         dbSettings=settings["database settings"]
     )
 
-    # NOW DETERMINE EXP INFO
-    from tabulate import tabulate
+    # GENERATE EXPOSURE STATS
+    expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first'})
 
-    # Use groupby to sum 'Value1' and 'Value2', and calculate the mean of 'Value1' and 'Value2'
-    result = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum'})
+    # RENAME COLUMNS
+    renames = {
+        "prob": "prob_90",
+        "distmu": "distmu_90",
+        "distsigma": "distsigma_90",
+        "distnorm": "distnorm_90",
+        "area": "area_90",
+        "expname": "expId"
+    }
+    expStats.rename(columns=renames, inplace=True)
 
-    print(tabulate(result.head(1000), headers='keys', tablefmt='psql'))
+    print(tabulate(expStats.head(1000), headers='keys', tablefmt='psql'))
     sys.exit(0)
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
@@ -315,6 +323,9 @@ def create_db_tables(
       `distsigma_90` double DEFAULT NULL,
       `distnorm_90` double DEFAULT NULL,
       `prob_90` double DEFAULT NULL,
+      `area_90` double DEFAULT NULL,
+      `mjd` double DEFAULT NULL,
+      `mjd_t0` double DEFAULT NULL,
       UNIQUE KEY `expid_mapid_uq` (`expId`,`mapId`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
     """
@@ -331,9 +342,13 @@ def create_db_tables(
       `distsigma_90` double DEFAULT NULL,
       `distnorm_90` double DEFAULT NULL,
       `prob_90` double DEFAULT NULL,
+      `area_90` double DEFAULT NULL,
+      `mjd` double DEFAULT NULL,
+      `mjd_t0` double DEFAULT NULL,
       UNIQUE KEY `expid_mapid_uq` (`expId`,`mapId`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
     """
+
     writequery(
         log=log,
         sqlQuery=sqlQuery,
