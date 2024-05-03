@@ -283,7 +283,7 @@ def match_exp_to_map_pixels(
     )
 
     # GENERATE EXPOSURE STATS
-    expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first'})
+    expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first'}).reset_index()
 
     # RENAME COLUMNS
     renames = {
