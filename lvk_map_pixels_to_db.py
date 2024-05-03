@@ -157,6 +157,10 @@ def convert_map_to_list_of_dicts(
     mask = (skymap["CUMPROB"] <= 0.9)
     skymap = skymap.loc[mask]
 
+    # SET 0 DIST TO NULL
+    mask = (skymap["DISTMU"] == 0.)
+    skymap = skymap.loc[mask, "DISTMU"] = None
+
     # REMOVE COLUMN FROM DATA FRAME
     # try:
     #     skymap.drop(columns=['DISTMU', 'DISTSIGMA', 'DISTNORM'], inplace=True)
