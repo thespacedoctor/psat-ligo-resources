@@ -281,7 +281,7 @@ def match_exp_to_map_pixels(
     from tabulate import tabulate
 
     # Use groupby to sum 'Value1' and 'Value2', and calculate the mean of 'Value1' and 'Value2'
-    result = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first'})
+    result = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'mjd_t0': 'size'})
 
     print(tabulate(result.head(1000), headers='keys', tablefmt='psql'))
     sys.exit(0)
