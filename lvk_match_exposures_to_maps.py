@@ -73,12 +73,13 @@ def main(arguments=None):
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for index, mmap in enumerate(maps):
 
-        mapDF = get_the_map_as_healpix_dataframe(log=log, dbConn=dbConn, mapId=mmap["mapId"])
-
         atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
 
-        match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46, mapDF=mapDF, settings=settings)
-        match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4, mapDF=mapDF, settings=settings)
+        if len(atExps.index) or len(psExps.index):
+
+            mapDF = get_the_map_as_healpix_dataframe(log=log, dbConn=dbConn, mapId=mmap["mapId"])
+            match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46, mapDF=mapDF, settings=settings)
+            match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4, mapDF=mapDF, settings=settings)
 
         if index > 0:
             # Cursor up one line and clear line
