@@ -70,6 +70,7 @@ def main(arguments=None):
     create_db_tables(dbConn=dbConn, log=log)
 
     nside = 128
+
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for index, mmap in enumerate(maps):
 
@@ -208,6 +209,9 @@ def match_exp_to_map_pixels(
 
     import pandas as pd
     from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
+    import healpy as hp
+
+    pixelArea = float(hp.nside2pixarea(nside, degrees=True))
 
     if not len(exps.index):
         return
@@ -252,6 +256,7 @@ def match_exp_to_map_pixels(
     exps = exps.explode('ipix')
 
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
+    expMapDf['area'] = pixelArea
 
     # SORT BY COLUMN NAME
     expMapDf.sort_values(['mjd'], inplace=True)
@@ -281,7 +286,7 @@ def match_exp_to_map_pixels(
     from tabulate import tabulate
 
     # Use groupby to sum 'Value1' and 'Value2', and calculate the mean of 'Value1' and 'Value2'
-    result = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'mjd_t0': 'size'})
+    result = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum'})
 
     print(tabulate(result.head(1000), headers='keys', tablefmt='psql'))
     sys.exit(0)
