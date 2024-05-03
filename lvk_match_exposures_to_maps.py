@@ -296,9 +296,21 @@ def match_exp_to_map_pixels(
     }
     expStats.rename(columns=renames, inplace=True)
 
-    from tabulate import tabulate
+    expStats = expStats.to_dict('records')
 
-    print(tabulate(expStats.head(1000), headers='keys', tablefmt='psql'))
+    # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
+    insert_list_of_dictionaries_into_database_tables(
+        dbConn=dbConn,
+        log=log,
+        dictList=expStats,
+        dbTableName=f"exp_{survey}_alert_map_matches",
+        dateModified=False,
+        dateCreated=False,
+        batchSize=200000,
+        replace=True,
+        dbSettings=settings["database settings"]
+    )
+
     sys.exit(0)
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
