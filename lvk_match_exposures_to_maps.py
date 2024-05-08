@@ -264,10 +264,6 @@ def match_exp_to_map_pixels(
 
     firstIpixCoverage = expMapDf.drop_duplicates(subset=['ipix'])
 
-    from tabulate import tabulate
-    print(tabulate(firstIpixCoverage.head(1000), headers='keys', tablefmt='psql'))
-    sys.exit(0)
-
     # RENAME SOME INDIVIDUALLY
     firstIpixCoverage[f"exp_{survey}_id"] = firstIpixCoverage["expname"]
     firstIpixCoverage = firstIpixCoverage[[f'exp_{survey}_id', 'mapId', 'ipix']]
