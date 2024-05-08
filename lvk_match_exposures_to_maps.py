@@ -299,8 +299,6 @@ def match_exp_to_map_pixels(
     from tabulate import tabulate
     print(tabulate(expStats, headers='keys', tablefmt='psql'))
 
-    sys.exit(0)
-
     expStats = expStats.to_dict('records')
 
     # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
@@ -315,6 +313,8 @@ def match_exp_to_map_pixels(
         replace=True,
         dbSettings=settings["database settings"]
     )
+
+    sys.exit(0)
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
     return None
