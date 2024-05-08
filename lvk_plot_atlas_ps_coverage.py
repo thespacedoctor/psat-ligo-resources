@@ -80,7 +80,7 @@ def main(arguments=None):
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
     maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"])
 
-    print(f"Generating {len(maps)} x 3 plots")
+    print(f"Generating {len(maps)} x 4 plots")
     count = len(maps)
 
     for index, mmap in enumerate(maps):
@@ -115,8 +115,6 @@ def main(arguments=None):
         else:
             df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
             df.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
-
-        continue
 
         coverageStats = []
         for rangeDays in [1, 3, 7, 14]:
