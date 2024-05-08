@@ -299,6 +299,15 @@ def match_exp_to_map_pixels(
     from tabulate import tabulate
     print(tabulate(expStats, headers='keys', tablefmt='psql'))
 
+    # FILTER DATA FRAME
+    # FIRST CREATE THE MASK
+    mask = (expStats['distsigma_90'].isnull())
+    expStats.loc[mask, "distmu_90"] = None
+    expStats.loc[mask, "distnorm_90"] = None
+    expStats.loc[mask, "distsigma_90"] = None
+
+    # xpd-update-filter-dataframe-column-values
+
     expStats = expStats.to_dict('records')
 
     # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
