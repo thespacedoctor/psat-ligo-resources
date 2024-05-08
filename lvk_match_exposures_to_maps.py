@@ -168,7 +168,7 @@ def get_exposures_in_maps_temporal_window(
     atExps = pd.DataFrame(atExps)
 
     sqlQuery = f"""
-        SELECT e.primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
+        SELECT e.primaryId as expname, raDeg, decDeg, stacked, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
     """
     psExps = readquery(
         log=log,
@@ -284,7 +284,7 @@ def match_exp_to_map_pixels(
     )
 
     # GENERATE EXPOSURE STATS
-    expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first'}).reset_index()
+    expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first', 'stacked': 'first'}).reset_index()
 
     # RENAME COLUMNS
     renames = {
