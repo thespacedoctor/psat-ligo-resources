@@ -296,12 +296,13 @@ def match_exp_to_map_pixels(
         "expname": "expId"
     }
     expStats.rename(columns=renames, inplace=True)
+
+    # REPLACE NANS
+    mask = (expStats['distsigma_90'].isnull())
+    expStats.loc[mask]["distmu_90"] = None
+    expStats.loc[mask]["distnorm_90"] = None
+    expStats.loc[mask]["distsigma_90"] = None
     expStats = expStats.replace({np.nan: None})
-
-    from tabulate import tabulate
-    print(tabulate(expStats, headers='keys', tablefmt='psql'))
-
-    # xpd-update-filter-dataframe-column-values
 
     expStats = expStats.to_dict('records')
 
