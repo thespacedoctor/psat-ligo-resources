@@ -282,39 +282,39 @@ def match_exp_to_map_pixels(
         dbSettings=settings["database settings"]
     )
 
-    # # GENERATE EXPOSURE STATS
-    # expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first'}).reset_index()
+    # GENERATE EXPOSURE STATS
+    expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first'}).reset_index()
 
-    # # RENAME COLUMNS
-    # renames = {
-    #     "prob": "prob_90",
-    #     "distmu": "distmu_90",
-    #     "distsigma": "distsigma_90",
-    #     "distnorm": "distnorm_90",
-    #     "area": "area_90",
-    #     "expname": "expId"
-    # }
-    # expStats.rename(columns=renames, inplace=True)
+    # RENAME COLUMNS
+    renames = {
+        "prob": "prob_90",
+        "distmu": "distmu_90",
+        "distsigma": "distsigma_90",
+        "distnorm": "distnorm_90",
+        "area": "area_90",
+        "expname": "expId"
+    }
+    expStats.rename(columns=renames, inplace=True)
 
-    # from tabulate import tabulate
-    # print(tabulate(expStats, headers='keys', tablefmt='psql'))
+    from tabulate import tabulate
+    print(tabulate(expStats, headers='keys', tablefmt='psql'))
 
-    # sys.exit(0)
+    sys.exit(0)
 
-    # expStats = expStats.to_dict('records')
+    expStats = expStats.to_dict('records')
 
-    # # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
-    # insert_list_of_dictionaries_into_database_tables(
-    #     dbConn=dbConn,
-    #     log=log,
-    #     dictList=expStats,
-    #     dbTableName=f"exp_{survey}_alert_map_matches",
-    #     dateModified=False,
-    #     dateCreated=False,
-    #     batchSize=200000,
-    #     replace=True,
-    #     dbSettings=settings["database settings"]
-    # )
+    # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
+    insert_list_of_dictionaries_into_database_tables(
+        dbConn=dbConn,
+        log=log,
+        dictList=expStats,
+        dbTableName=f"exp_{survey}_alert_map_matches",
+        dateModified=False,
+        dateCreated=False,
+        batchSize=200000,
+        replace=True,
+        dbSettings=settings["database settings"]
+    )
 
     log.debug('completed the ``match_exp_to_map_pixels`` function')
     return None
