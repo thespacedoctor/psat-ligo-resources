@@ -299,9 +299,9 @@ def match_exp_to_map_pixels(
 
     # REPLACE NANS
     mask = (expStats['distsigma_90'].isnull())
-    expStats.loc[mask]["distmu_90"] = None
-    expStats.loc[mask]["distnorm_90"] = None
-    expStats.loc[mask]["distsigma_90"] = None
+    expStats.loc[mask, "distmu_90"] = None
+    expStats.loc[mask, "distnorm_90"] = None
+    expStats.loc[mask, "distsigma_90"] = None
     expStats = expStats.replace({np.nan: None})
 
     expStats = expStats.to_dict('records')
