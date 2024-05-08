@@ -119,7 +119,7 @@ def main(arguments=None):
         continue
 
         coverageStats = []
-        for rangeDays in [1, 3, 7]:
+        for rangeDays in [1, 3, 7, 14]:
             atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
             psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
 
