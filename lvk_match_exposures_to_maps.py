@@ -210,6 +210,7 @@ def match_exp_to_map_pixels(
     import pandas as pd
     from fundamentals.mysql import insert_list_of_dictionaries_into_database_tables
     import healpy as hp
+    import numpy as np
 
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
 
@@ -295,13 +296,7 @@ def match_exp_to_map_pixels(
         "expname": "expId"
     }
     expStats.rename(columns=renames, inplace=True)
-
-    # FILTER DATA FRAME
-    # FIRST CREATE THE MASK
-    mask = (expStats['distsigma_90'].isnull())
-    expStats.loc[mask]["distmu_90"] = None
-    expStats.loc[mask]["distnorm_90"] = None
-    expStats.loc[mask]["distsigma_90"] = None
+    expStats = expStats.replace({np.nan: None})
 
     from tabulate import tabulate
     print(tabulate(expStats, headers='keys', tablefmt='psql'))
