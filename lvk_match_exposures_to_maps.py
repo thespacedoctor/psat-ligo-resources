@@ -296,15 +296,15 @@ def match_exp_to_map_pixels(
     }
     expStats.rename(columns=renames, inplace=True)
 
-    from tabulate import tabulate
-    print(tabulate(expStats, headers='keys', tablefmt='psql'))
-
     # FILTER DATA FRAME
     # FIRST CREATE THE MASK
     mask = (expStats['distsigma_90'].isnull())
     expStats.loc[mask, "distmu_90"] = None
     expStats.loc[mask, "distnorm_90"] = None
     expStats.loc[mask, "distsigma_90"] = None
+
+    from tabulate import tabulate
+    print(tabulate(expStats, headers='keys', tablefmt='psql'))
 
     # xpd-update-filter-dataframe-column-values
 
