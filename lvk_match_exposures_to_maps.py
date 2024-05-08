@@ -91,7 +91,7 @@ def main(arguments=None):
         print(f'{index+1}/{len(maps)} ({percent:1.1f} done)')
 
         mapId = mmap["mapId"]
-        sqlQuery = f"""update alerts set processed = 1 where primaryId = {mapIds}"""
+        sqlQuery = f"""update alerts set processed = 1 where primaryId = {mapId}"""
         writequery(
             log=log,
             sqlQuery=sqlQuery,
