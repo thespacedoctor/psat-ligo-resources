@@ -320,8 +320,6 @@ def match_exp_to_map_pixels(
         dbSettings=settings["database settings"]
     )
 
-    sys.exit(0)
-
     log.debug('completed the ``match_exp_to_map_pixels`` function')
     return None
 
