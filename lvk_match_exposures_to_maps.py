@@ -37,6 +37,8 @@ import numpy as np
 from fundamentals.mysql import writequery
 
 from astrocalc.times import now
+from fundamentals.logs import emptyLogger
+log = emptyLogger()
 mjd = now(
     log=log
 ).get_mjd()
