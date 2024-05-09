@@ -112,11 +112,11 @@ def main(arguments=None):
 
         if len(df.index):
             mask = (df["stacked"] == 1)
-            df.loc[mask].to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False, float_format='%.3f')
-            df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False, float_format='%.3f')
+            df.loc[mask].to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
+            df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
         else:
-            df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False, float_format='%.3f')
-            df.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False, float_format='%.3f')
+            df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
+            df.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
 
         coverageStats = []
         for rangeDays in [1, 3, 7, 14]:
