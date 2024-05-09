@@ -100,7 +100,7 @@ def main(arguments=None):
         mapMjd = mmap["mjd_obs"]
 
         # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
-        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14)
+        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
         psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
 
         outputFolder = os.path.dirname(mmap["map"])
@@ -223,7 +223,8 @@ def get_atlas_exposures_covering_map(
         mapId,
         pixelArea,
         mjdLower,
-        mjdUpper=700000000):
+        mjdUpper=700000000,
+        allSkycells=False):
     """*Get all of the atlas exposures covering map*
 
     **Key Arguments:**
@@ -238,24 +239,30 @@ def get_atlas_exposures_covering_map(
     log.debug('starting the ``get_atlas_exposures_covering_map`` function')
 
     from fundamentals.mysql import readquery
-    sqlQuery = f"""
-        SELECT DISTINCT
-            mjd,
-            expname,
-            raDeg,
-            decDeg,
-            exp_time,
-            filter,
-            limiting_magnitude
-        FROM
-            exp_atlas e,
-            alert_pixels_128 p
-        WHERE
-            p.mapId = {mapId}
-                AND e.primaryId = p.exp_atlas_id
-                and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
-        ORDER BY mjd;
-    """
+
+    if allSkycells:
+        sqlQuery = f"""
+            SELECT expname, m.mjd, m.mjd_t0, filter, exp_time, limiting_magnitude, raDeg, decDeg, area_90, prob_90, distmu_90, distsigma_90, distnorm_90 FROM lvk.exp_atlas_alert_map_matches m, lvk.exp_atlas e  where m.mapId = {mapId} and m.expId=e.primaryId order by m.mjd;
+        """
+    else:
+        sqlQuery = f"""
+            SELECT DISTINCT
+                mjd,
+                expname,
+                raDeg,
+                decDeg,
+                exp_time,
+                filter,
+                limiting_magnitude
+            FROM
+                exp_atlas e,
+                alert_pixels_128 p
+            WHERE
+                p.mapId = {mapId}
+                    AND e.primaryId = p.exp_atlas_id
+                    and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
+            ORDER BY mjd;
+        """
     atlasExps = readquery(
         log=log,
         sqlQuery=sqlQuery,
@@ -312,36 +319,31 @@ def get_ps_skycells_covering_map(
 
     if allSkycells:
         sqlQuery = f"""
-            select distinct
-                mjd,
-                imageID,
+            SELECT 
+                imageid AS 'expname',
                 skycell,
+                m.mjd,
+                m.mjd_t0,
+                filter,
+                exp_time,
+                limiting_mag AS 'limiting_magnitude',
                 raDeg,
                 decDeg,
-                exp_time,
-                filter,
-                limiting_mag,
-                stacked
+                area_90,
+                prob_90,
+                distmu_90,
+                distsigma_90,
+                distnorm_90,
+                m.stacked
             FROM
-                exp_ps e,
-                ps1_skycell_map s
-
-            where
-                s.skycell_id = e.skycell and
-                e.mjd < {mjdUpper} and e.mjd > {mjdLower}
-                and s.skycell_id in (
-
-            SELECT skycell_id
-                FROM
-                    exp_ps e,
-                    ps1_skycell_map s,
-                    alert_pixels_128 p
-                WHERE
-                    s.skycell_id = e.skycell
-                        AND e.primaryId = p.exp_ps_id
-                        AND p.mapId = {mapId} and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
-            )
-            ORDER BY mjd ASC;
+                lvk.exp_ps_alert_map_matches m,
+                lvk.exp_ps e,
+                lvk.ps1_skycell_map s
+            WHERE
+                m.mapId = {mapId} AND m.expId = e.primaryId
+                    AND s.skycell_id = skycell
+                    and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
+            ORDER BY m.mjd ASC;
         """
     else:
         sqlQuery = f"""
