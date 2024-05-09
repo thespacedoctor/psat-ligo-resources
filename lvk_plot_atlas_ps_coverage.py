@@ -111,70 +111,70 @@ def main(arguments=None):
         if len(df.index):
             mask = (df["stacked"] == 1)
             df.loc[mask].to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False, float_format='%.3f')
-            df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False, float_format='%.3f'))
+            df.loc[~mask].to_csv(outputFolder + "/ps_skycells_warps.csv", index=False, float_format='%.3f')
         else:
-            df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index = False, float_format = '%.3f')
-            df.to_csv(outputFolder + "/ps_skycells_warps.csv", index = False, float_format = '%.3f')
+            df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False, float_format='%.3f')
+            df.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False, float_format='%.3f')
 
-        coverageStats=[]
+        coverageStats = []
         for rangeDays in [1, 3, 7, 14]:
-            atlasExps, atlasStats=get_atlas_exposures_covering_map(log = log, dbConn = dbConn, mapId = mmap["mapId"], mjdLower = mapMjd, mjdUpper = mapMjd + rangeDays, pixelArea = pixelArea)
-            psExps, psStats=get_ps_skycells_covering_map(log = log, dbConn = dbConn, mapId = mmap["mapId"], mjdLower = mapMjd, mjdUpper = mapMjd + rangeDays, pixelArea = pixelArea)
+            atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+            psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
 
-            atlasStats["days since event"]=rangeDays
-            psStats["days since event"]=rangeDays
-            atlasStats["survey"]="atlas"
-            psStats["survey"]="panstarrs"
+            atlasStats["days since event"] = rangeDays
+            psStats["days since event"] = rangeDays
+            atlasStats["survey"] = "atlas"
+            psStats["survey"] = "panstarrs"
             coverageStats.append(atlasStats)
             coverageStats.append(psStats)
 
             # GRAB META
             try:
-                yamlFilePath=outputFolder + "/meta.yaml"
+                yamlFilePath = outputFolder + "/meta.yaml"
                 with open(yamlFilePath, 'r') as stream:
-                    meta=yaml.safe_load(stream)
+                    meta = yaml.safe_load(stream)
             except:
-                meta={}
+                meta = {}
 
-            atlasPatches=get_patches(log = log, exposures = atlasExps, pointingSide = 5.46)
-            psPatches=get_patches(log = log, exposures = psExps, pointingSide = 0.4)
+            atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
+            psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
 
-            converter=aitoff(
-                log = log,
-                mapPath = mmap["map"],
-                outputFolder = outputFolder,
-                settings = settings,
-                plotName = f"atlas_coverage_{rangeDays}d.png",
-                meta = meta,
-                patches = atlasPatches,
-                patchesColor = "#d33682",
-                patchesLabel = " ATLAS Exposure"
+            converter = aitoff(
+                log=log,
+                mapPath=mmap["map"],
+                outputFolder=outputFolder,
+                settings=settings,
+                plotName=f"atlas_coverage_{rangeDays}d.png",
+                meta=meta,
+                patches=atlasPatches,
+                patchesColor="#d33682",
+                patchesLabel=" ATLAS Exposure"
             )
             converter.convert()
 
-            converter=aitoff(
-                log = log,
-                mapPath = mmap["map"],
-                outputFolder = outputFolder,
-                settings = settings,
-                plotName = f"ps_coverage_{rangeDays}d.png",
-                meta = meta,
-                patches = psPatches,
-                patchesColor = "#859900",
-                patchesLabel = " PanSTARRS Skycell"
+            converter = aitoff(
+                log=log,
+                mapPath=mmap["map"],
+                outputFolder=outputFolder,
+                settings=settings,
+                plotName=f"ps_coverage_{rangeDays}d.png",
+                meta=meta,
+                patches=psPatches,
+                patchesColor="#859900",
+                patchesLabel=" PanSTARRS Skycell"
             )
             converter.convert()
 
-        coverageStats=pd.DataFrame(coverageStats)
+        coverageStats = pd.DataFrame(coverageStats)
         # SORT BY COLUMN NAME
         coverageStats.sort_values(['survey', 'days since event'],
-                                  ascending = [True, True], inplace = True)
+                                  ascending=[True, True], inplace=True)
 
         if "ALERT" in meta:
-            header=f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
+            header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
         else:
-            header=f"# archive map\n"
-        coverageStats=tabulate(coverageStats, headers = 'keys', tablefmt = 'psql', showindex = False)
+            header = f"# archive map\n"
+        coverageStats = tabulate(coverageStats, headers='keys', tablefmt='psql', showindex=False)
         with open(outputFolder + "/map_coverage.txt", "w") as myFile:
             myFile.write(header)
             myFile.write(coverageStats)
@@ -185,7 +185,7 @@ def main(arguments=None):
 def list_maps_to_be_plotted(
         dbConn,
         log,
-        daysAgo = False):
+        daysAgo=False):
     """*Generate a list of maps needing maps to be plotted*
 
     **Key Arguments:**
@@ -195,22 +195,22 @@ def list_maps_to_be_plotted(
     """
     log.debug('starting the ``list_maps_to_be_plotted`` function')
 
-    extra=""
+    extra = ""
     if daysAgo:
-        utcnow=datetime.utcnow()
-        mjdnow=Time([utcnow], scale = 'utc').mjd[0]
-        extra=f"and mjd_obs > {mjdnow} - {daysAgo}"
+        utcnow = datetime.utcnow()
+        mjdnow = Time([utcnow], scale='utc').mjd[0]
+        extra = f"and mjd_obs > {mjdnow} - {daysAgo}"
 
     from fundamentals.mysql import readquery
-    sqlQuery=f"""
+    sqlQuery = f"""
         select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1 {extra};
     """
 
-    maps=readquery(
-        log = log,
-        sqlQuery = sqlQuery,
-        dbConn = dbConn,
-        quiet = False
+    maps = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
     )
 
     log.debug('completed the ``list_maps_to_be_plotted`` function')
@@ -223,8 +223,8 @@ def get_atlas_exposures_covering_map(
         mapId,
         pixelArea,
         mjdLower,
-        mjdUpper = 700000000,
-        allSkycells = False):
+        mjdUpper=700000000,
+        allSkycells=False):
     """*Get all of the atlas exposures covering map*
 
     **Key Arguments:**
@@ -241,11 +241,11 @@ def get_atlas_exposures_covering_map(
     from fundamentals.mysql import readquery
 
     if allSkycells:
-        sqlQuery=f"""
+        sqlQuery = f"""
             SELECT expname, m.mjd, m.mjd_t0, filter, exp_time, limiting_magnitude, raDeg, decDeg, area_90, prob_90, distmu_90, distsigma_90, distnorm_90 FROM lvk.exp_atlas_alert_map_matches m, lvk.exp_atlas e  where m.mapId = {mapId} and m.expId=e.primaryId order by m.mjd;
         """
     else:
-        sqlQuery=f"""
+        sqlQuery = f"""
             SELECT DISTINCT
                 mjd,
                 expname,
@@ -263,28 +263,28 @@ def get_atlas_exposures_covering_map(
                     and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
             ORDER BY mjd;
         """
-    atlasExps=readquery(
-        log = log,
-        sqlQuery = sqlQuery,
-        dbConn = dbConn,
-        quiet = False
+    atlasExps = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
     )
 
-    sqlQuery=f"""
+    sqlQuery = f"""
         select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id and e.mjd < {mjdUpper} and e.mjd > {mjdLower};
     """
-    pixels=readquery(
-        log = log,
-        sqlQuery = sqlQuery,
-        dbConn = dbConn,
-        quiet = False
+    pixels = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
     )
 
     if pixels[0]['count'] == 0:
-        pixels[0]['prob']=0.
-        pixels[0]['area']=0.
+        pixels[0]['prob'] = 0.
+        pixels[0]['area'] = 0.
 
-    stats={
+    stats = {
         "prob. coverage (%)": float(f"{pixels[0]['prob']:0.2f}"),
         "90% area coverage (squ.deg.)": float(f"{pixels[0]['area']:0.2f}"),
     }
@@ -299,8 +299,8 @@ def get_ps_skycells_covering_map(
         mapId,
         pixelArea,
         mjdLower,
-        mjdUpper = 700000000,
-        allSkycells = False):
+        mjdUpper=700000000,
+        allSkycells=False):
     """*Get all of the panstarrs skycells covering map*
 
     **Key Arguments:**
@@ -318,7 +318,7 @@ def get_ps_skycells_covering_map(
     from fundamentals.mysql import readquery
 
     if allSkycells:
-        sqlQuery=f"""
+        sqlQuery = f"""
             SELECT
                 imageid AS 'expname',
                 skycell,
@@ -346,7 +346,7 @@ def get_ps_skycells_covering_map(
             ORDER BY m.mjd ASC;
         """
     else:
-        sqlQuery=f"""
+        sqlQuery = f"""
             SELECT distinct
                 mjd,
                 imageID,
@@ -367,28 +367,28 @@ def get_ps_skycells_covering_map(
             ORDER BY mjd ASC;
         """
 
-    psExps=readquery(
-        log = log,
-        sqlQuery = sqlQuery,
-        dbConn = dbConn,
-        quiet = False
+    psExps = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
     )
 
-    sqlQuery=f"""
+    sqlQuery = f"""
         select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper} and e.mjd > {mjdLower};
     """
-    pixels=readquery(
-        log = log,
-        sqlQuery = sqlQuery,
-        dbConn = dbConn,
-        quiet = False
+    pixels = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
     )
 
     if pixels[0]['count'] == 0:
-        pixels[0]['prob']=0.
-        pixels[0]['area']=0.
+        pixels[0]['prob'] = 0.
+        pixels[0]['area'] = 0.
 
-    stats={
+    stats = {
         "prob. coverage (%)": float(f"{pixels[0]['prob']:0.2f}"),
         "90% area coverage (squ.deg.)": float(f"{pixels[0]['area']:0.2f}"),
     }
@@ -411,33 +411,33 @@ def get_patches(
     """
     log.debug('starting the ``get_patches`` function')
 
-    expPatches=[]
+    expPatches = []
     for e in exposures:
 
-        raDeg=e['raDeg']
-        raDeg=-raDeg + 180
+        raDeg = e['raDeg']
+        raDeg = -raDeg + 180
         if raDeg > 180.:
             raDeg -= 360
-        raDeg=-raDeg
-        decDeg=e['decDeg']
+        raDeg = -raDeg
+        decDeg = e['decDeg']
 
-        deltaDeg=pointingSide / 2
+        deltaDeg = pointingSide / 2
         if decDeg < 0:
-            deltaDeg=-deltaDeg
+            deltaDeg = -deltaDeg
 
-        widthRadTop=np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg + deltaDeg))
-        widthRadBottom=np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg - deltaDeg))
-        heightRad=np.deg2rad(pointingSide)
-        llx=-(np.deg2rad(raDeg) - widthRadBottom / 2)
-        lly=np.deg2rad(decDeg) - (heightRad / 2)
-        ulx=-(np.deg2rad(raDeg) - widthRadTop / 2)
-        uly=np.deg2rad(decDeg) + (heightRad / 2)
-        urx=-(np.deg2rad(raDeg) + widthRadTop / 2)
-        ury=uly
-        lrx=-(np.deg2rad(raDeg) + widthRadBottom / 2)
-        lry=lly
-        Path=mpath.Path
-        path_data=[
+        widthRadTop = np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg + deltaDeg))
+        widthRadBottom = np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg - deltaDeg))
+        heightRad = np.deg2rad(pointingSide)
+        llx = -(np.deg2rad(raDeg) - widthRadBottom / 2)
+        lly = np.deg2rad(decDeg) - (heightRad / 2)
+        ulx = -(np.deg2rad(raDeg) - widthRadTop / 2)
+        uly = np.deg2rad(decDeg) + (heightRad / 2)
+        urx = -(np.deg2rad(raDeg) + widthRadTop / 2)
+        ury = uly
+        lrx = -(np.deg2rad(raDeg) + widthRadBottom / 2)
+        lry = lly
+        Path = mpath.Path
+        path_data = [
             (Path.MOVETO, [llx, lly]),
             (Path.LINETO, [ulx, uly]),
             (Path.LINETO, [urx, ury]),
