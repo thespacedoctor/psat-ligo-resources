@@ -142,34 +142,35 @@ def main(arguments=None):
             except:
                 meta = {}
 
-            atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
-            psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
+            if rangeDays == 14:
+                atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
+                psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
 
-            converter = aitoff(
-                log=log,
-                mapPath=mmap["map"],
-                outputFolder=outputFolder,
-                settings=settings,
-                plotName=f"atlas_coverage_{rangeDays}d.png",
-                meta=meta,
-                patches=atlasPatches,
-                patchesColor="#d33682",
-                patchesLabel=" ATLAS Exposure"
-            )
-            converter.convert()
+                converter = aitoff(
+                    log=log,
+                    mapPath=mmap["map"],
+                    outputFolder=outputFolder,
+                    settings=settings,
+                    plotName=f"atlas_coverage_{rangeDays}d.png",
+                    meta=meta,
+                    patches=atlasPatches,
+                    patchesColor="#d33682",
+                    patchesLabel=" ATLAS Exposure"
+                )
+                converter.convert()
 
-            converter = aitoff(
-                log=log,
-                mapPath=mmap["map"],
-                outputFolder=outputFolder,
-                settings=settings,
-                plotName=f"ps_coverage_{rangeDays}d.png",
-                meta=meta,
-                patches=psPatches,
-                patchesColor="#859900",
-                patchesLabel=" PanSTARRS Skycell"
-            )
-            converter.convert()
+                converter = aitoff(
+                    log=log,
+                    mapPath=mmap["map"],
+                    outputFolder=outputFolder,
+                    settings=settings,
+                    plotName=f"ps_coverage_{rangeDays}d.png",
+                    meta=meta,
+                    patches=psPatches,
+                    patchesColor="#859900",
+                    patchesLabel=" PanSTARRS Skycell"
+                )
+                converter.convert()
 
         coverageStats = pd.DataFrame(coverageStats)
         # SORT BY COLUMN NAME
