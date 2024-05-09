@@ -36,6 +36,12 @@ import healpy as hp
 import numpy as np
 from fundamentals.mysql import writequery
 
+from astrocalc.times import now
+mjd = now(
+    log=log
+).get_mjd()
+mjdLimit = mjd - 15
+
 
 def main(arguments=None):
     """
@@ -157,7 +163,7 @@ def get_exposures_in_maps_temporal_window(
     start = mmap["mjd_obs"]
 
     sqlQuery = f"""
-        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
+        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) order by mjd asc;
     """
     atExps = readquery(
         log=log,
@@ -168,7 +174,7 @@ def get_exposures_in_maps_temporal_window(
     atExps = pd.DataFrame(atExps)
 
     sqlQuery = f"""
-        SELECT e.primaryId as expname, raDeg, decDeg, stacked, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and processed = 0 order by mjd asc;
+        SELECT e.primaryId as expname, raDeg, decDeg, stacked, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) order by mjd asc;
     """
     psExps = readquery(
         log=log,
