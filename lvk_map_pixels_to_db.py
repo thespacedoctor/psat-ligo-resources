@@ -148,7 +148,7 @@ def convert_map_to_list_of_dicts(
         nside=nside
     )
 
-    if "DISTSIGMA" not in skymap.column:
+    if "DISTSIGMA" not in skymap.columns:
         skymap["DISTSIGMA"] = None
         skymap["DISTMU"] = None
 
