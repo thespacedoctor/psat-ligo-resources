@@ -148,7 +148,8 @@ def convert_map_to_list_of_dicts(
         nside=nside
     )
 
-    print(skymap.columns)
+    from tabulate import tabulate
+    print(tabulate(skymap, headers='keys', tablefmt='psql'))
 
     # SORT BY PROB, CALCULATE CUMULATIVE PROB AND RESORT BY INDEX
     skymap.sort_values(["PROB"],
