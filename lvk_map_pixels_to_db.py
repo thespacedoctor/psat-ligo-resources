@@ -148,6 +148,8 @@ def convert_map_to_list_of_dicts(
         nside=nside
     )
 
+    print(skymap.columns())
+
     # SORT BY PROB, CALCULATE CUMULATIVE PROB AND RESORT BY INDEX
     skymap.sort_values(["PROB"],
                        ascending=[False], inplace=True)
