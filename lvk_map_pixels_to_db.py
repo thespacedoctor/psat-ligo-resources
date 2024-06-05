@@ -19,7 +19,7 @@ conda install pymysql -c conda-forge
 You will also need to add database credientials to the gocart.yaml file.
 
 Usage:
-    lvk_map_pixels_to_db 
+    lvk_map_pixels_to_db
 
 Options:
 
@@ -78,7 +78,7 @@ def list_maps_to_be_imported(
     **Key Arguments:**
 
     - `dbConn` -- mysql database connection
-    - `log` -- logger  
+    - `log` -- logger
     """
     log.debug('starting the ``list_maps_to_be_imported`` function')
 
@@ -148,7 +148,7 @@ def convert_map_to_list_of_dicts(
         nside=nside
     )
 
-    print(skymap.columns())
+    print(skymap.columns)
 
     # SORT BY PROB, CALCULATE CUMULATIVE PROB AND RESORT BY INDEX
     skymap.sort_values(["PROB"],
@@ -189,8 +189,8 @@ def import_maps_to_db(
 
     - `dbConn` -- mysql database connection
     - `log` -- logger
-    - `maps` -- list of dictionaries (containing `mapId` and `map` path)       
-    - `settings` -- dict of gocart settings 
+    - `maps` -- list of dictionaries (containing `mapId` and `map` path)
+    - `settings` -- dict of gocart settings
     """
     log.debug('starting the ``import_maps_to_db`` function')
 
