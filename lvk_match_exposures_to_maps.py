@@ -225,6 +225,10 @@ def match_exp_to_map_pixels(
     if not len(exps.index):
         return
 
+    print(mapId)
+    print(mapId)
+    print(mapId)
+
     tmpDf = exps.copy()
 
     tmpDf["decCorner1"] = tmpDf["decDeg"] - pointingSide / 2
