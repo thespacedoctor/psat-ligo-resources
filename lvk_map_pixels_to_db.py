@@ -148,8 +148,9 @@ def convert_map_to_list_of_dicts(
         nside=nside
     )
 
-    from tabulate import tabulate
-    print(tabulate(skymap, headers='keys', tablefmt='psql'))
+    if "DISTSIGMA" not in skymap.column:
+        skymap["DISTSIGMA"] = None
+        skymap["DISTMU"] = None
 
     # SORT BY PROB, CALCULATE CUMULATIVE PROB AND RESORT BY INDEX
     skymap.sort_values(["PROB"],
