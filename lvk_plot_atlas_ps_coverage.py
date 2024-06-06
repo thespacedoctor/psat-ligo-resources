@@ -106,6 +106,7 @@ def main(arguments=None):
         outputFolder = os.path.dirname(mmap["map"])
         df = pd.DataFrame(atlasExps)
         df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6, 'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
+        df.rename(columns={"limiting_magnitude": "mag5sig"}, inplace=True)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
         df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6, 'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
