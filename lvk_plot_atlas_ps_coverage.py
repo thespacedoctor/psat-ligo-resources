@@ -187,7 +187,7 @@ def main(arguments=None):
             myFile.write(header)
             myFile.write(coverageStats)
 
-        with open(outputFolder + "/README.md", "w") as myFile:
+        with open(outputFolder + "/what.txt", "w") as myFile:
             content = readme_content()
             myFile.write(content)
 
