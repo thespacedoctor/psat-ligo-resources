@@ -187,7 +187,7 @@ def main(arguments=None):
             myFile.write(header)
             myFile.write(coverageStats)
 
-        with open(outputFolder + "/README.txt", "w") as myFile:
+        with open(outputFolder + "/README.md", "w") as myFile:
             content = readme_content()
             myFile.write(content)
 
@@ -476,11 +476,11 @@ MJD-ordered exports of the ATLAS exposures and PS stack-warp and stack-stack sky
 
 The ATLAS exposure limiting magnitudes are reported at 5𝜎, whereas the PS warps are 3.5𝜎. Until May 2024, the PS stack limiting mags were reported at 5𝜎, but from May 2024 onward, they are reported at 3.5𝜎, in line with the warps.
 
-Each high-significance event alert map is converted to a level 7 (nside = 128) HEALPix map. The equal-area map pixels are then sorted from the highest-to-lowest likelihood of containing the actual location of the gravity event. A cumulative probability is assigned to each pixel, starting with the highest probability pixel and summing up to 100\% once the lowest probability pixel is reached. All pixels with a cumulative probability of ≤90\% are cached in a database. Note that for well-constrained event maps, the fraction of pixels within the 90\% contour region is tiny compared to the whole sky.
+Each high-significance event alert map is converted to a level 7 (nside = 128) HEALPix map. The equal-area map pixels are then sorted from the highest-to-lowest likelihood of containing the actual location of the gravity event. A cumulative probability is assigned to each pixel, starting with the highest probability pixel and summing up to 100% once the lowest probability pixel is reached. All pixels with a cumulative probability of ≤90% are cached in a database. Note that for well-constrained event maps, the fraction of pixels within the 90% contour region is tiny compared to the whole sky.
 
-ATLAS exposures and PS skycells taken within 0-14 days of the gravity event are projected onto the level-7 HEALPix sky, and their overlapping pixels are calculated. This allows the matching of the exposures and skycells HEALpix pixels against those within the 90\% contours of the event maps. Finally, this allows for the following values to be calculated for each exposure/skycell:
+ATLAS exposures and PS skycells taken within 0-14 days of the gravity event are projected onto the level-7 HEALPix sky, and their overlapping pixels are calculated. This allows the matching of the exposures and skycells HEALpix pixels against those within the 90% contours of the event maps. Finally, this allows for the following values to be calculated for each exposure/skycell:
 
-`area_90`: sky area with the 90\% contour of the event map covered by the exposure/skycell.
+`area_90`: sky area with the 90% contour of the event map covered by the exposure/skycell.
 
 `prob_90`: total probability covered within `area_90` 
 
