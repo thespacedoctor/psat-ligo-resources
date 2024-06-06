@@ -90,20 +90,20 @@ def main(arguments=None):
             print(f"The map '{mmap['map']}' does not exist on this file system")
             continue
 
-        # if index > 1:
-        #     # Cursor up one line and clear line
-        #     sys.stdout.write("\x1b[1A\x1b[2K")
+        if index > 1:
+            # Cursor up one line and clear line
+            sys.stdout.write("\x1b[1A\x1b[2K")
 
-        # percent = (float(index) / float(count)) * 100.
-        # print(f'{index}/{count} ({percent:1.1f}% done)')
+        percent = (float(index) / float(count)) * 100.
+        print(f'{index}/{count} ({percent:1.1f}% done)')
 
-        # mapMjd = mmap["mjd_obs"]
+        mapMjd = mmap["mjd_obs"]
 
         # # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
         # atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
         # psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
 
-        # outputFolder = os.path.dirname(mmap["map"])
+        outputFolder = os.path.dirname(mmap["map"])
         # df = pd.DataFrame(atlasExps)
         # df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6, 'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
         # df.rename(columns={"limiting_magnitude": "mag5sig"}, inplace=True)
