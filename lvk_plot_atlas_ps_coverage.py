@@ -90,102 +90,102 @@ def main(arguments=None):
             print(f"The map '{mmap['map']}' does not exist on this file system")
             continue
 
-        if index > 1:
-            # Cursor up one line and clear line
-            sys.stdout.write("\x1b[1A\x1b[2K")
+        # if index > 1:
+        #     # Cursor up one line and clear line
+        #     sys.stdout.write("\x1b[1A\x1b[2K")
 
-        percent = (float(index) / float(count)) * 100.
-        print(f'{index}/{count} ({percent:1.1f}% done)')
+        # percent = (float(index) / float(count)) * 100.
+        # print(f'{index}/{count} ({percent:1.1f}% done)')
 
-        mapMjd = mmap["mjd_obs"]
+        # mapMjd = mmap["mjd_obs"]
 
-        # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
-        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
-        psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
+        # # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
+        # atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
+        # psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
 
-        outputFolder = os.path.dirname(mmap["map"])
-        df = pd.DataFrame(atlasExps)
-        df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6, 'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
-        df.rename(columns={"limiting_magnitude": "mag5sig"}, inplace=True)
-        df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
-        df = pd.DataFrame(psExps)
-        df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6, 'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
+        # outputFolder = os.path.dirname(mmap["map"])
+        # df = pd.DataFrame(atlasExps)
+        # df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6, 'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
+        # df.rename(columns={"limiting_magnitude": "mag5sig"}, inplace=True)
+        # df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
+        # df = pd.DataFrame(psExps)
+        # df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6, 'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
 
-        if len(df.index):
-            mask = (df["stacked"] == 1)
-            this = df.loc[mask]
-            this.drop(columns=['stacked'], inplace=True)
-            this.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
-            this = df.loc[~mask]
-            this.drop(columns=['stacked'], inplace=True)
-            this.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
-        else:
-            df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
-            df.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
+        # if len(df.index):
+        #     mask = (df["stacked"] == 1)
+        #     this = df.loc[mask]
+        #     this.drop(columns=['stacked'], inplace=True)
+        #     this.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
+        #     this = df.loc[~mask]
+        #     this.drop(columns=['stacked'], inplace=True)
+        #     this.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
+        # else:
+        #     df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
+        #     df.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
 
-        coverageStats = []
-        for rangeDays in [1, 3, 7, 14]:
-            atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
-            psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+        # coverageStats = []
+        # for rangeDays in [1, 3, 7, 14]:
+        #     atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+        #     psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
 
-            atlasStats["days since event"] = rangeDays
-            psStats["days since event"] = rangeDays
-            atlasStats["survey"] = "atlas"
-            psStats["survey"] = "panstarrs"
-            coverageStats.append(atlasStats)
-            coverageStats.append(psStats)
+        #     atlasStats["days since event"] = rangeDays
+        #     psStats["days since event"] = rangeDays
+        #     atlasStats["survey"] = "atlas"
+        #     psStats["survey"] = "panstarrs"
+        #     coverageStats.append(atlasStats)
+        #     coverageStats.append(psStats)
 
-            # GRAB META
-            try:
-                yamlFilePath = outputFolder + "/meta.yaml"
-                with open(yamlFilePath, 'r') as stream:
-                    meta = yaml.safe_load(stream)
-            except:
-                meta = {}
+        #     # GRAB META
+        #     try:
+        #         yamlFilePath = outputFolder + "/meta.yaml"
+        #         with open(yamlFilePath, 'r') as stream:
+        #             meta = yaml.safe_load(stream)
+        #     except:
+        #         meta = {}
 
-            if rangeDays == 14:
-                atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
-                psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
+        #     if rangeDays == 14:
+        #         atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
+        #         psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
 
-                converter = aitoff(
-                    log=log,
-                    mapPath=mmap["map"],
-                    outputFolder=outputFolder,
-                    settings=settings,
-                    plotName=f"atlas_coverage_{rangeDays}d.png",
-                    meta=meta,
-                    patches=atlasPatches,
-                    patchesColor="#d33682",
-                    patchesLabel=" ATLAS Exposure"
-                )
-                converter.convert()
+        #         converter = aitoff(
+        #             log=log,
+        #             mapPath=mmap["map"],
+        #             outputFolder=outputFolder,
+        #             settings=settings,
+        #             plotName=f"atlas_coverage_{rangeDays}d.png",
+        #             meta=meta,
+        #             patches=atlasPatches,
+        #             patchesColor="#d33682",
+        #             patchesLabel=" ATLAS Exposure"
+        #         )
+        #         converter.convert()
 
-                converter = aitoff(
-                    log=log,
-                    mapPath=mmap["map"],
-                    outputFolder=outputFolder,
-                    settings=settings,
-                    plotName=f"ps_coverage_{rangeDays}d.png",
-                    meta=meta,
-                    patches=psPatches,
-                    patchesColor="#859900",
-                    patchesLabel=" PanSTARRS Skycell"
-                )
-                converter.convert()
+        #         converter = aitoff(
+        #             log=log,
+        #             mapPath=mmap["map"],
+        #             outputFolder=outputFolder,
+        #             settings=settings,
+        #             plotName=f"ps_coverage_{rangeDays}d.png",
+        #             meta=meta,
+        #             patches=psPatches,
+        #             patchesColor="#859900",
+        #             patchesLabel=" PanSTARRS Skycell"
+        #         )
+        #         converter.convert()
 
-        coverageStats = pd.DataFrame(coverageStats)
-        # SORT BY COLUMN NAME
-        coverageStats.sort_values(['survey', 'days since event'],
-                                  ascending=[True, True], inplace=True)
+        # coverageStats = pd.DataFrame(coverageStats)
+        # # SORT BY COLUMN NAME
+        # coverageStats.sort_values(['survey', 'days since event'],
+        #                           ascending=[True, True], inplace=True)
 
-        if "ALERT" in meta:
-            header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
-        else:
-            header = f"# archive map\n"
-        coverageStats = tabulate(coverageStats, headers='keys', tablefmt='psql', showindex=False)
-        with open(outputFolder + "/map_coverage.txt", "w") as myFile:
-            myFile.write(header)
-            myFile.write(coverageStats)
+        # if "ALERT" in meta:
+        #     header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
+        # else:
+        #     header = f"# archive map\n"
+        # coverageStats = tabulate(coverageStats, headers='keys', tablefmt='psql', showindex=False)
+        # with open(outputFolder + "/map_coverage.txt", "w") as myFile:
+        #     myFile.write(header)
+        #     myFile.write(coverageStats)
 
         with open(outputFolder + "/README.txt", "w") as myFile:
             content = readme_content()
