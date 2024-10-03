@@ -119,7 +119,7 @@ def main(arguments=None):
             this = df.loc[mask].copy()
             this.drop(columns=['stacked'], inplace=True)
             this.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
-            this = df.loc[~mask]
+            this = df.loc[~mask].copy()
             this.drop(columns=['stacked'], inplace=True)
             this.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
         else:
