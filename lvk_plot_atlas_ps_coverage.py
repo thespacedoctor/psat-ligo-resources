@@ -287,6 +287,7 @@ def get_atlas_exposures_covering_map(
                     and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
             ORDER BY mjd;
         """
+    print(sqlQuery)
     atlasExps = readquery(
         log=log,
         sqlQuery=sqlQuery,
@@ -304,6 +305,8 @@ def get_atlas_exposures_covering_map(
         quiet=False
     )
 
+    print(sqlQuery)
+    print("\n\n")
     if pixels[0]['count'] == 0:
         pixels[0]['prob'] = 0.
         pixels[0]['area'] = 0.
