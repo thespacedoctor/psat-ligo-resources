@@ -146,7 +146,7 @@ def main(arguments=None):
             except:
                 meta = {}
 
-            if rangeDays == 14:
+            if rangeDays == 14 or True:
                 atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
                 psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
 
