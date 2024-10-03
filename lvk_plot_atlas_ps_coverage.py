@@ -220,7 +220,7 @@ def list_maps_to_be_plotted(
         extra = f"and mjd_obs > {mjdnow} - {daysAgo}"
 
     if gid:
-        extra = f"and superevent_id = {gid}"
+        extra = f"and superevent_id = '{gid}'"
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
