@@ -181,9 +181,6 @@ def main(arguments=None):
         coverageStats.sort_values(['survey', 'days since event'],
                                   ascending=[True, True], inplace=True)
 
-        from tabulate import tabulate
-        print(tabulate(coverageStats, headers='keys', tablefmt='psql'))
-
         if "ALERT" in meta:
             header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
         else:
@@ -287,7 +284,6 @@ def get_atlas_exposures_covering_map(
                     and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
             ORDER BY mjd;
         """
-    print(sqlQuery)
     atlasExps = readquery(
         log=log,
         sqlQuery=sqlQuery,
@@ -305,8 +301,6 @@ def get_atlas_exposures_covering_map(
         quiet=False
     )
 
-    print(sqlQuery)
-    print("\n\n")
     if pixels[0]['count'] == 0:
         pixels[0]['prob'] = 0.
         pixels[0]['area'] = 0.

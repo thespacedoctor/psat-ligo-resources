@@ -167,6 +167,9 @@ def get_exposures_in_maps_temporal_window(
     sqlQuery = f"""
         SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) order by mjd asc;
     """
+
+    print(sqlQuery)
+
     atExps = readquery(
         log=log,
         sqlQuery=sqlQuery,
