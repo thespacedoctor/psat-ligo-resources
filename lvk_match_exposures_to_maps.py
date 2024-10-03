@@ -270,7 +270,7 @@ def match_exp_to_map_pixels(
     # SORT BY COLUMN NAME
     expMapDf.sort_values(['mjd'], inplace=True)
 
-    firstIpixCoverage = expMapDf.drop_duplicates(subset=['ipix'])
+    firstIpixCoverage = expMapDf.drop_duplicates(subset=['ipix']).copy()
 
     # RENAME SOME INDIVIDUALLY
     firstIpixCoverage[f"exp_{survey}_id"] = firstIpixCoverage["expname"]

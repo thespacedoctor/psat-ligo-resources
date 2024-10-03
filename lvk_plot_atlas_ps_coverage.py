@@ -19,13 +19,16 @@ You will also need to add database credentials to the gocart.yaml file.
 
 Usage:
     lvk_plot_atlas_ps_coverage [<daysAgo>]
+    lvk_plot_atlas_ps_coverage -g [<gid>]
 
 Options:
     <daysAgo>             only replot events from last N days
+    <gid>                 the gravity event ID
 
     -h, --help            show this help message
     -v, --version         show version
     -s, --settings        the settings file
+    -g, --gevent          the ID of a gravity event
 """
 ################# GLOBAL IMPORTS ####################
 import sys
@@ -78,7 +81,7 @@ def main(arguments=None):
     import pandas as pd
     nside = 128
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
-    maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"])
+    maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"], daysAgo=a["gid"])
 
     print(f"Generating {len(maps)} x 4 plots")
     count = len(maps)
@@ -197,21 +200,27 @@ def main(arguments=None):
 def list_maps_to_be_plotted(
         dbConn,
         log,
-        daysAgo=False):
+        daysAgo=False,
+        gid=False):
     """*Generate a list of maps needing maps to be plotted*
 
     **Key Arguments:**
 
     - `dbConn` -- mysql database connection
     - `log` -- logger
+    - `daysAgo` -- plot all events within the last 'daysAgo' days
+    - ``gid`` -- single out a gravity event to plot
     """
     log.debug('starting the ``list_maps_to_be_plotted`` function')
 
     extra = ""
-    if daysAgo:
+    if daysAgo and not gid:
         utcnow = datetime.utcnow()
         mjdnow = Time([utcnow], scale='utc').mjd[0]
         extra = f"and mjd_obs > {mjdnow} - {daysAgo}"
+
+    if gid:
+        extra = f"and superevent_id = {gid}"
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
