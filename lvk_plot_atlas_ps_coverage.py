@@ -81,7 +81,7 @@ def main(arguments=None):
     import pandas as pd
     nside = 128
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
-    maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"], daysAgo=a["gid"])
+    maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"], gid=a["gid"])
 
     print(f"Generating {len(maps)} x 4 plots")
     count = len(maps)
