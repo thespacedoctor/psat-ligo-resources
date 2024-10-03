@@ -181,6 +181,9 @@ def main(arguments=None):
         coverageStats.sort_values(['survey', 'days since event'],
                                   ascending=[True, True], inplace=True)
 
+        from tabulate import tabulate
+        print(tabulate(coverageStats, headers='keys', tablefmt='psql'))
+
         if "ALERT" in meta:
             header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
         else:
