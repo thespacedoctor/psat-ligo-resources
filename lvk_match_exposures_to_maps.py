@@ -42,7 +42,7 @@ log = emptyLogger()
 mjd = now(
     log=log
 ).get_mjd()
-mjdLimit = mjd - 15
+mjdLimit = mjd - 360
 
 
 def main(arguments=None):
