@@ -309,7 +309,7 @@ def match_exp_to_map_pixels(
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
     expMapDf['area'] = pixelArea
 
-    print(tabulate(expMapDf.head(10), headers='keys', tablefmt='psql'))
+    print(tabulate(expMapDf.head(1000), headers='keys', tablefmt='psql'))
     print(pointingSideDec)
 
     # SORT BY COLUMN NAME
