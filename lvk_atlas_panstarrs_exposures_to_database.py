@@ -74,7 +74,7 @@ def main(arguments=None):
     tableNames, csvContents = read_csv_files(
         log=log, pathToExports=pathToExports)
     import_csv_content_to_database(log=log, dbConn=dbConn, tableNames=tableNames,
-                                   csvContents=csvContents, settings=settings, pastDays=300)
+                                   csvContents=csvContents, settings=settings, pastDays=5)
 
     return
 
