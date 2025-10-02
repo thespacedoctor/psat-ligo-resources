@@ -500,8 +500,8 @@ def get_patches(
         if decDeg < 0:
             deltaDeg = -deltaDeg
 
-        widthRadTop = np.deg2rad(pointingSideRA) /
-        np.cos(np.deg2rad(decDeg + deltaDeg))
+        widthRadTop = np.deg2rad(pointingSideRA) / \
+            np.cos(np.deg2rad(decDeg + deltaDeg))
         widthRadBottom = np.deg2rad(
             pointingSideRA) / np.cos(np.deg2rad(decDeg - deltaDeg))
         heightRad = np.deg2rad(pointingSideDec)
