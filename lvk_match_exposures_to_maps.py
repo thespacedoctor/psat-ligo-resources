@@ -304,11 +304,13 @@ def match_exp_to_map_pixels(
     exps = exps.explode('ipix')
 
     from tabulate import tabulate
-    print(tabulate(exps, headers='keys', tablefmt='psql'))
-    print(pointingSideDec)
+    print(tabulate(exps.head(10), headers='keys', tablefmt='psql'))
 
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
     expMapDf['area'] = pixelArea
+
+    print(tabulate(expMapDf.head(10), headers='keys', tablefmt='psql'))
+    print(pointingSideDec)
 
     # SORT BY COLUMN NAME
     expMapDf.sort_values(['mjd'], inplace=True)
