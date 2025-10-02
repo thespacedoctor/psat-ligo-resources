@@ -172,7 +172,7 @@ def get_exposures_in_maps_temporal_window(
     start = mmap["mjd_obs"]
 
     sqlQuery = f"""
-        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) and expname not like "05%"order by mjd asc;
+        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) and expname not like "05%" order by mjd asc;
     """
 
     atExps = readquery(
@@ -184,7 +184,7 @@ def get_exposures_in_maps_temporal_window(
     atExps = pd.DataFrame(atExps)
 
     sqlQuery = f"""
-        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) and expname  like "05%"order by mjd asc;
+        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) and expname  like "05%" order by mjd asc;
     """
 
     atTDOExps = readquery(
