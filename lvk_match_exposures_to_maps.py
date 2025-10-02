@@ -291,14 +291,15 @@ def match_exp_to_map_pixels(
     bigList = []
     # 1,2,4,3 IS NOT A BUG ... HEALPY NEEDS THIS ORDER
     bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
-    bigList[:] = [[o, t, f, th] for o, t, th, f in zip(three, four, one, two)]
     tmpDf['corners'] = bigList
 
     ipix = []
     ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True)
                for c in bigList]
 
-    exps["ipix"] = ipix
+    if pointingSideDec < 1:
+        exps["ipix"] = ipix
+        print(ipix)
 
     exps.dropna(axis='index', how='any', subset=['ipix'], inplace=True)
     # EXPLODE THE DF TO ONE ROW PER IPIX
