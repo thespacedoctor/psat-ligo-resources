@@ -105,20 +105,26 @@ def main(arguments=None):
         mapMjd = mmap["mjd_obs"]
 
         # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
-        atlasExps, atlasStats = get_atlas_exposures_covering_map(
+        atlasExps, atlasTDOExps, atlasStats = get_atlas_exposures_covering_map(
             log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
         psExps, psStats = get_ps_skycells_covering_map(
             log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
 
         outputFolder = os.path.dirname(mmap["map"])
         df = pd.DataFrame(atlasExps)
+        df2 = pd.DataFrame(atlasTDOExps)
+        # CONCATENATE
+        df = pd.concat([df, df2], ignore_index=True)
         df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6,
                       'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
         df.rename(columns={"limiting_magnitude": "mag5sig"}, inplace=True)
+        # SORT BY MJD ASCENDING
+        df.sort_values(['mjd'], ascending=[True], inplace=True)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
         df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6,
                       'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
+        df.sort_values(['mjd'], ascending=[True], inplace=True)
 
         if len(df.index):
             mask = (df["stacked"] == 1)
@@ -134,7 +140,7 @@ def main(arguments=None):
 
         coverageStats = []
         for rangeDays in [1, 3, 7, 14]:
-            atlasExps, atlasStats = get_atlas_exposures_covering_map(
+            atlasExps, atlasTDOExps, atlasStats = get_atlas_exposures_covering_map(
                 log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
             psExps, psStats = get_ps_skycells_covering_map(
                 log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
@@ -157,8 +163,13 @@ def main(arguments=None):
             if rangeDays == 14 or True:
                 atlasPatches = get_patches(
                     log=log, exposures=atlasExps, pointingSideRA=5.46, pointingSideDec=5.46)
+                atlasTDOPatches = get_patches(
+                    log=log, exposures=atlasTDOExps, pointingSideRA=3.34096, pointingSideDec=2.22451556)
                 psPatches = get_patches(
                     log=log, exposures=psExps, pointingSideRA=0.4, pointingSideDec=0.4)
+
+                # MERGE ATLAS PATCHES
+                atlasPatches.extend(atlasTDOPatches)
 
                 converter = aitoff(
                     log=log,
@@ -273,11 +284,34 @@ def get_atlas_exposures_covering_map(
     from fundamentals.mysql import readquery
 
     if allSkycells:
-        sqlQuery = f"""
-            SELECT expname, m.mjd, m.mjd_t0, filter, exp_time, limiting_magnitude, raDeg, decDeg, area_90, prob_90, distmu_90, distsigma_90, distnorm_90 FROM lvk.exp_atlas_alert_map_matches m, lvk.exp_atlas e  where m.mapId = {mapId} and m.expId=e.primaryId order by m.mjd;
+        sqlQuery1 = f"""
+            SELECT expname, m.mjd, m.mjd_t0, filter, exp_time, limiting_magnitude, raDeg, decDeg, area_90, prob_90, distmu_90, distsigma_90, distnorm_90 FROM lvk.exp_atlas_alert_map_matches m, lvk.exp_atlas e  where m.mapId = {mapId} and m.expId=e.primaryId and expname not like "05%" order by m.mjd;
+        """
+        sqlQuery2 = f"""
+            SELECT expname, m.mjd, m.mjd_t0, filter, exp_time, limiting_magnitude, raDeg, decDeg, area_90, prob_90, distmu_90, distsigma_90, distnorm_90 FROM lvk.exp_atlas_alert_map_matches m, lvk.exp_atlas e  where m.mapId = {mapId} and m.expId=e.primaryId  and expname like "05%" order by m.mjd;
         """
     else:
-        sqlQuery = f"""
+        sqlQuery1 = f"""
+            SELECT DISTINCT
+                mjd,
+                expname,
+                raDeg,
+                decDeg,
+                exp_time,
+                filter,
+                limiting_magnitude
+            FROM
+                exp_atlas e,
+                alert_pixels_128 p
+            WHERE
+
+                p.mapId = {mapId}
+                    AND e.primaryId = p.exp_atlas_id
+                    and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
+                and expname not like "05%"
+            ORDER BY mjd;
+        """
+        sqlQuery2 = f"""
             SELECT DISTINCT
                 mjd,
                 expname,
@@ -293,11 +327,18 @@ def get_atlas_exposures_covering_map(
                 p.mapId = {mapId}
                     AND e.primaryId = p.exp_atlas_id
                     and e.mjd < {mjdUpper} and e.mjd > {mjdLower}
+                and expname like "05%"
             ORDER BY mjd;
         """
     atlasExps = readquery(
         log=log,
-        sqlQuery=sqlQuery,
+        sqlQuery=sqlQuery1,
+        dbConn=dbConn,
+        quiet=False
+    )
+    atlasTDOExps = readquery(
+        log=log,
+        sqlQuery=sqlQuery2,
         dbConn=dbConn,
         quiet=False
     )
@@ -322,7 +363,7 @@ def get_atlas_exposures_covering_map(
     }
 
     log.debug('completed the ``get_atlas_exposures_covering_map`` function')
-    return atlasExps, stats
+    return atlasExps, atlasTDOExps, stats
 
 
 def get_ps_skycells_covering_map(
@@ -459,8 +500,8 @@ def get_patches(
         if decDeg < 0:
             deltaDeg = -deltaDeg
 
-        widthRadTop = np.deg2rad(pointingSideRA) / \
-            np.cos(np.deg2rad(decDeg + deltaDeg))
+        widthRadTop = np.deg2rad(pointingSideRA) /
+        np.cos(np.deg2rad(decDeg + deltaDeg))
         widthRadBottom = np.deg2rad(
             pointingSideRA) / np.cos(np.deg2rad(decDeg - deltaDeg))
         heightRad = np.deg2rad(pointingSideDec)
@@ -490,7 +531,7 @@ def get_patches(
 
 def readme_content():
     """*get the content for the readme file*
-    ```           
+    ```
     """
 
     content = """
@@ -506,7 +547,7 @@ ATLAS exposures and PS skycells taken within 0-14 days of the gravity event are 
 
 `area_90`: sky area with the 90% contour of the event map covered by the exposure/skycell.
 
-`prob_90`: total probability covered within `area_90` 
+`prob_90`: total probability covered within `area_90`
 
 `distmu_90`: the mean distance covered within `area_90` (Mpc). For many exposures/skycells, this will be blank as the distance recorded in the maps is infinite at these sky locations.
 
@@ -514,7 +555,7 @@ ATLAS exposures and PS skycells taken within 0-14 days of the gravity event are 
 
 `distnorm_90`: the mean distance normalisation coefficient (Mpc^-2).
 
-The distance posterior (probability per distance interval) at a given location is: 
+The distance posterior (probability per distance interval) at a given location is:
 dp(r)/dr = distnorm_90 * Gaussian(distmu_90, distsigma_90)
 
 See here for more info on distance parameters: https://arxiv.org/pdf/1605.04242

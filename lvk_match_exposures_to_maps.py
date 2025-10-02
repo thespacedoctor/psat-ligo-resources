@@ -82,7 +82,7 @@ def main(arguments=None):
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for index, mmap in enumerate(maps):
 
-        atExps, psExps = get_exposures_in_maps_temporal_window(
+        atExps, atTDOExps, psExps = get_exposures_in_maps_temporal_window(
             log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
 
         if len(atExps.index) or len(psExps.index):
@@ -91,6 +91,8 @@ def main(arguments=None):
                 log=log, dbConn=dbConn, mapId=mmap["mapId"])
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps,
                                     mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
+            match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atTDOExps,
+                                    mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=3.34096, pointingSideDec=2.22451556, mapDF=mapDF, settings=settings)
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps,
                                     mapId=mmap["mapId"], survey="ps", nside=nside, pointingSideRA=0.4, pointingSideDec=0.4, mapDF=mapDF, settings=settings)
 
@@ -159,7 +161,8 @@ def get_exposures_in_maps_temporal_window(
 
     **Return:**
 
-    - `atExps` -- atlas exposures as pandas dataframe
+    - `atExps` -- atlas exposures as pandas dataframe (not tdo)
+    - `atTDOExps` -- atlas tdo exposures as pandas dataframe
     - `psExps` -- panstarrs exposures as pandas dataframe
     """
     log.debug('starting the ``get_exposures_in_maps_temporal_window`` function')
@@ -169,7 +172,7 @@ def get_exposures_in_maps_temporal_window(
     start = mmap["mjd_obs"]
 
     sqlQuery = f"""
-        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) order by mjd asc;
+        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) and expname not like "05%"order by mjd asc;
     """
 
     atExps = readquery(
@@ -179,6 +182,18 @@ def get_exposures_in_maps_temporal_window(
         quiet=False
     )
     atExps = pd.DataFrame(atExps)
+
+    sqlQuery = f"""
+        SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) and expname  like "05%"order by mjd asc;
+    """
+
+    atTDOExps = readquery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn,
+        quiet=False
+    )
+    atTDOExps = pd.DataFrame(atTDOExps)
 
     sqlQuery = f"""
         SELECT e.primaryId as expname, raDeg, decDeg, stacked, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) order by mjd asc;
@@ -192,7 +207,7 @@ def get_exposures_in_maps_temporal_window(
     psExps = pd.DataFrame(psExps)
 
     log.debug('completed the ``get_exposures_in_maps_temporal_window`` function')
-    return atExps, psExps
+    return atExps, atTDOExps, psExps
 
 
 def match_exp_to_map_pixels(
@@ -310,7 +325,7 @@ def match_exp_to_map_pixels(
         dateModified=False,
         dateCreated=False,
         batchSize=200000,
-        replace=True,
+        replace=False,
         dbSettings=settings["database settings"]
     )
 
@@ -351,7 +366,7 @@ def match_exp_to_map_pixels(
         dateModified=False,
         dateCreated=False,
         batchSize=200000,
-        replace=True,
+        replace=False,
         dbSettings=settings["database settings"]
     )
 
