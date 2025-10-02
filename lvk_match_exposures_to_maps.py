@@ -85,7 +85,7 @@ def main(arguments=None):
         atExps, atTDOExps, psExps = get_exposures_in_maps_temporal_window(
             log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
 
-        if len(atExps.index) or len(psExps.index):
+        if len(atExps.index) or len(psExps.index) or len(atTDOExps.index):
 
             mapDF = get_the_map_as_healpix_dataframe(
                 log=log, dbConn=dbConn, mapId=mmap["mapId"])
@@ -325,7 +325,7 @@ def match_exp_to_map_pixels(
         dateModified=False,
         dateCreated=False,
         batchSize=200000,
-        replace=True,
+        replace=False,
         dbSettings=settings["database settings"]
     )
 
