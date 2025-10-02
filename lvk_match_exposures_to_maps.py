@@ -297,8 +297,8 @@ def match_exp_to_map_pixels(
     ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True)
                for c in bigList]
 
+    exps["ipix"] = ipix
     if pointingSideDec < 1:
-        exps["ipix"] = ipix
         print(ipix)
 
     exps.dropna(axis='index', how='any', subset=['ipix'], inplace=True)
