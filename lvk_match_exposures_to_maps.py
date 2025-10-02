@@ -298,7 +298,7 @@ def match_exp_to_map_pixels(
                for c in bigList]
 
     exps["ipix"] = ipix
-    if pointingSideDec < 1:
+    if pointingSideDec < 3:
         print(ipix)
 
     exps.dropna(axis='index', how='any', subset=['ipix'], inplace=True)
