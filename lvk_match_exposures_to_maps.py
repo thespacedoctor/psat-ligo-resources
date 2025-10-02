@@ -297,14 +297,15 @@ def match_exp_to_map_pixels(
     ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True)
                for c in bigList]
 
-    print(ipix)
-    print(len(ipix))
-
     exps["ipix"] = ipix
 
     exps.dropna(axis='index', how='any', subset=['ipix'], inplace=True)
     # EXPLODE THE DF TO ONE ROW PER IPIX
     exps = exps.explode('ipix')
+
+    from tabulate import tabulate
+    print(tabulate(exps, headers='keys', tablefmt='psql'))
+    print(pointingSideDec)
 
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
     expMapDf['area'] = pixelArea
