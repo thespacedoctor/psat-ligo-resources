@@ -202,7 +202,8 @@ def import_maps_to_db(
     mapPixelTableName = f"alert_pixels_{nside}"
 
     for m in maps:
-        listOfDicts = convert_map_to_list_of_dicts(log=log, mapId=m["primaryId"], mapPath=m["map"], nside=nside)
+        listOfDicts = convert_map_to_list_of_dicts(
+            log=log, mapId=m["primaryId"], mapPath=m["map"], nside=nside)
 
         # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
         insert_list_of_dictionaries_into_database_tables(
@@ -214,7 +215,7 @@ def import_maps_to_db(
             dateModified=False,
             dateCreated=False,
             batchSize=2500,
-            replace=True,
+            replace=False,
             dbSettings=settings["database settings"]
         )
 

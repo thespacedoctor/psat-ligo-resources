@@ -85,11 +85,14 @@ def plugin(
         for k, v in alertMeta["EXTRA"].items():
             if not isinstance(v, dict):
                 alertDict[k.lower()] = v
-        alertDict["ra_centre"] = alertMeta["EXTRA"]['central coordinate']["equatorial"].split()[0]
-        alertDict["dec_centre"] = alertMeta["EXTRA"]['central coordinate']["equatorial"].split()[1]
+        alertDict["ra_centre"] = alertMeta["EXTRA"]['central coordinate']["equatorial"].split()[
+            0]
+        alertDict["dec_centre"] = alertMeta["EXTRA"]['central coordinate']["equatorial"].split()[
+            1]
 
     if "HEADER" in alertMeta and alertMeta["HEADER"]:
-        allowList = ["CREATOR", "DATE-OBS", "DISTMEAN", "DISTSTD", "LOGBCI", "LOGBSN", "MJD-OBS"]
+        allowList = ["CREATOR", "DATE-OBS", "DISTMEAN",
+                     "DISTSTD", "LOGBCI", "LOGBSN", "MJD-OBS"]
         for k, v in alertMeta["HEADER"].items():
             if not isinstance(v, dict) and k in allowList:
                 alertDict[k.lower()] = v
@@ -103,7 +106,8 @@ def plugin(
         if "time" in alertDict:
             from datetime import datetime
             try:
-                delta = datetime.strptime(alertDict["alert_time"], '%Y-%m-%dT%H:%M:%SZ') - datetime.strptime(alertDict["time"], '%Y-%m-%dT%H:%M:%S.%fZ')
+                delta = datetime.strptime(alertDict["alert_time"], '%Y-%m-%dT%H:%M:%SZ') - datetime.strptime(
+                    alertDict["time"], '%Y-%m-%dT%H:%M:%S.%fZ')
                 alertDict["alert_delta_sec"] = int(delta.seconds)
             except:
                 pass
@@ -237,10 +241,11 @@ def plugin(
         dateModified=False,
         dateCreated=False,
         batchSize=2500,
-        replace=True,
+        replace=False,
     )
 
-    export_alerts_table_to_csv(log=log, dbConn=dbConn, settings=settings, alertsTable=alertsTable, eventsView=eventsView)
+    export_alerts_table_to_csv(log=log, dbConn=dbConn, settings=settings,
+                               alertsTable=alertsTable, eventsView=eventsView)
 
     log.debug('completed the ``plugin`` function')
     return None
@@ -304,12 +309,15 @@ def export_alerts_table_to_csv(
                 sigDir = "/_low_significance"
                 sigSql = " and significant = 0"
 
-            exists = os.path.exists(settings['lvk']['download_dir'] + f"/{ddir}{sigDir}")
+            exists = os.path.exists(
+                settings['lvk']['download_dir'] + f"/{ddir}{sigDir}")
             if not exists:
                 continue
 
-            alertCsvPath = settings['lvk']['download_dir'] + f"/{ddir}{sigDir}/alerts.csv"
-            eventsCsvPath = settings['lvk']['download_dir'] + f"/{ddir}{sigDir}/events.csv"
+            alertCsvPath = settings['lvk']['download_dir'] + \
+                f"/{ddir}{sigDir}/alerts.csv"
+            eventsCsvPath = settings['lvk']['download_dir'] + \
+                f"/{ddir}{sigDir}/events.csv"
 
             # EVENTS VIEW EXPORT
             sqlQuery = f"""

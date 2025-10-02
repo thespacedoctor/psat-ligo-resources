@@ -82,13 +82,17 @@ def main(arguments=None):
     maps = list_maps_still_to_be_covered(dbConn=dbConn, log=log)
     for index, mmap in enumerate(maps):
 
-        atExps, psExps = get_exposures_in_maps_temporal_window(log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
+        atExps, psExps = get_exposures_in_maps_temporal_window(
+            log=log, dbConn=dbConn, mmap=mmap, windowDays=14)
 
         if len(atExps.index) or len(psExps.index):
 
-            mapDF = get_the_map_as_healpix_dataframe(log=log, dbConn=dbConn, mapId=mmap["mapId"])
-            match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps, mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSide=5.46, mapDF=mapDF, settings=settings)
-            match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps, mapId=mmap["mapId"], survey="ps", nside=nside, pointingSide=0.4, mapDF=mapDF, settings=settings)
+            mapDF = get_the_map_as_healpix_dataframe(
+                log=log, dbConn=dbConn, mapId=mmap["mapId"])
+            match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps,
+                                    mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
+            match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps,
+                                    mapId=mmap["mapId"], survey="ps", nside=nside, pointingSideRA=0.4, pointingSideDec=0.4, mapDF=mapDF, settings=settings)
 
         if index > 0:
             # Cursor up one line and clear line
@@ -198,7 +202,8 @@ def match_exp_to_map_pixels(
         mapId,
         survey,
         nside,
-        pointingSide,
+        pointingSideRA,
+        pointingSideDec,
         mapDF,
         settings):
     """*match the exposures to the event maps pixels and record in lvk database*
@@ -211,7 +216,8 @@ def match_exp_to_map_pixels(
     - `mapId` -- primaryId in the alerts table
     - `survey` -- atlas or ps
     - `nside` -- size of healpix pixel being used
-    - ``pointingSide`` -- the length of the side of the square exposure, in degrees
+    - ``pointingSideRA`` -- the width of the side of the square exposure, in degrees
+    - ``pointingSideDec`` -- the height of the side of the square exposure, in degrees
     - ``mapDF`` -- the map as a dataframe ... one row per ipix
     """
     log.debug('starting the ``match_exp_to_map_pixels`` function')
@@ -228,28 +234,42 @@ def match_exp_to_map_pixels(
 
     tmpDf = exps.copy()
 
-    tmpDf["decCorner1"] = tmpDf["decDeg"] - pointingSide / 2
-    tmpDf["decCorner2"] = tmpDf["decDeg"] + pointingSide / 2
+    tmpDf["decCorner1"] = tmpDf["decDeg"] - pointingSideDec / 2
+    tmpDf["decCorner2"] = tmpDf["decDeg"] + pointingSideDec / 2
 
-    tmpDf.loc[(tmpDf['decCorner1'] > 90.), 'decCorner1'] = 180. - tmpDf.loc[(tmpDf['decCorner1'] > 90.)]
-    tmpDf.loc[(tmpDf['decCorner1'] < -90.), 'decCorner1'] = -180. - tmpDf.loc[(tmpDf['decCorner1'] < -90.)]
-    tmpDf.loc[(tmpDf['decCorner2'] > 90.), 'decCorner2'] = 180. - tmpDf.loc[(tmpDf['decCorner2'] > 90.)]
-    tmpDf.loc[(tmpDf['decCorner2'] < -90.), 'decCorner2'] = -180. - tmpDf.loc[(tmpDf['decCorner2'] < -90.)]
+    tmpDf.loc[(tmpDf['decCorner1'] > 90.), 'decCorner1'] = 180. - \
+        tmpDf.loc[(tmpDf['decCorner1'] > 90.)]
+    tmpDf.loc[(tmpDf['decCorner1'] < -90.), 'decCorner1'] = - \
+        180. - tmpDf.loc[(tmpDf['decCorner1'] < -90.)]
+    tmpDf.loc[(tmpDf['decCorner2'] > 90.), 'decCorner2'] = 180. - \
+        tmpDf.loc[(tmpDf['decCorner2'] > 90.)]
+    tmpDf.loc[(tmpDf['decCorner2'] < -90.), 'decCorner2'] = - \
+        180. - tmpDf.loc[(tmpDf['decCorner2'] < -90.)]
 
     tmpDf['decMean'] = tmpDf[['decCorner1', 'decCorner2']].mean(axis=1)
 
-    tmpDf['raCorner1'] = tmpDf["raDeg"] - (pointingSide / 2) / np.cos(np.deg2rad(tmpDf['decMean']))
-    tmpDf['raCorner2'] = tmpDf["raDeg"] + (pointingSide / 2) / np.cos(np.deg2rad(tmpDf['decMean']))
+    tmpDf['raCorner1'] = tmpDf["raDeg"] - \
+        (pointingSideRA / 2) / np.cos(np.deg2rad(tmpDf['decMean']))
+    tmpDf['raCorner2'] = tmpDf["raDeg"] + \
+        (pointingSideRA / 2) / np.cos(np.deg2rad(tmpDf['decMean']))
 
-    tmpDf.loc[(tmpDf['raCorner1'] > 360.), 'raCorner1'] = 720. - tmpDf.loc[(tmpDf['raCorner1'] > 360.)]
-    tmpDf.loc[(tmpDf['raCorner1'] < 0.), 'raCorner1'] = 360. + tmpDf.loc[(tmpDf['raCorner1'] < 0.)]
-    tmpDf.loc[(tmpDf['raCorner2'] > 360.), 'raCorner2'] = 720. - tmpDf.loc[(tmpDf['raCorner2'] > 360.)]
-    tmpDf.loc[(tmpDf['raCorner2'] < 0.), 'raCorner2'] = 360. + tmpDf.loc[(tmpDf['raCorner2'] < 0.)]
+    tmpDf.loc[(tmpDf['raCorner1'] > 360.), 'raCorner1'] = 720. - \
+        tmpDf.loc[(tmpDf['raCorner1'] > 360.)]
+    tmpDf.loc[(tmpDf['raCorner1'] < 0.), 'raCorner1'] = 360. + \
+        tmpDf.loc[(tmpDf['raCorner1'] < 0.)]
+    tmpDf.loc[(tmpDf['raCorner2'] > 360.), 'raCorner2'] = 720. - \
+        tmpDf.loc[(tmpDf['raCorner2'] > 360.)]
+    tmpDf.loc[(tmpDf['raCorner2'] < 0.), 'raCorner2'] = 360. + \
+        tmpDf.loc[(tmpDf['raCorner2'] < 0.)]
 
-    one = hp.ang2vec(tmpDf['raCorner1'].values, tmpDf['decCorner1'].values, lonlat=True)
-    two = hp.ang2vec(tmpDf['raCorner2'].values, tmpDf['decCorner1'].values, lonlat=True)
-    three = hp.ang2vec(tmpDf['raCorner1'].values, tmpDf['decCorner2'].values, lonlat=True)
-    four = hp.ang2vec(tmpDf['raCorner2'].values, tmpDf['decCorner2'].values, lonlat=True)
+    one = hp.ang2vec(tmpDf['raCorner1'].values,
+                     tmpDf['decCorner1'].values, lonlat=True)
+    two = hp.ang2vec(tmpDf['raCorner2'].values,
+                     tmpDf['decCorner1'].values, lonlat=True)
+    three = hp.ang2vec(tmpDf['raCorner1'].values,
+                       tmpDf['decCorner2'].values, lonlat=True)
+    four = hp.ang2vec(tmpDf['raCorner2'].values,
+                      tmpDf['decCorner2'].values, lonlat=True)
 
     bigList = []
     # 1,2,4,3 IS NOT A BUG ... HEALPY NEEDS THIS ORDER
@@ -257,7 +277,8 @@ def match_exp_to_map_pixels(
     tmpDf['corners'] = bigList
 
     ipix = []
-    ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True) for c in bigList]
+    ipix[:] = [hp.query_polygon(nside, np.array(c), nest=True)
+               for c in bigList]
 
     exps["ipix"] = ipix
 
@@ -275,7 +296,8 @@ def match_exp_to_map_pixels(
 
     # RENAME SOME INDIVIDUALLY
     firstIpixCoverage[f"exp_{survey}_id"] = firstIpixCoverage["expname"]
-    firstIpixCoverage = firstIpixCoverage[[f'exp_{survey}_id', 'mapId', 'ipix']]
+    firstIpixCoverage = firstIpixCoverage[[
+        f'exp_{survey}_id', 'mapId', 'ipix']]
 
     firstIpixCoverage = firstIpixCoverage.to_dict('records')
 
@@ -294,9 +316,11 @@ def match_exp_to_map_pixels(
 
     # GENERATE EXPOSURE STATS
     if survey == "ps":
-        expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first', 'stacked': 'first'}).reset_index()
+        expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean',
+                                                     'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first', 'stacked': 'first'}).reset_index()
     else:
-        expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean', 'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first'}).reset_index()
+        expStats = expMapDf.groupby(f"expname").agg({'prob': 'sum', 'distmu': 'mean', 'distsigma': 'mean',
+                                                     'distnorm': 'mean', 'mjd': 'first', 'mjd_t0': 'first', 'area': 'sum', 'mapId': 'first'}).reset_index()
 
     # RENAME COLUMNS
     renames = {

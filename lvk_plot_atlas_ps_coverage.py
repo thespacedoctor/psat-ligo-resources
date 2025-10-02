@@ -81,7 +81,8 @@ def main(arguments=None):
     import pandas as pd
     nside = 128
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
-    maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"], gid=a["gid"])
+    maps = list_maps_to_be_plotted(
+        dbConn=dbConn, log=log, daysAgo=a["daysAgo"], gid=a["gid"])
 
     print(f"Generating {len(maps)} x 4 plots")
     count = len(maps)
@@ -90,7 +91,8 @@ def main(arguments=None):
 
         exists = os.path.exists(mmap["map"])
         if not exists:
-            print(f"The map '{mmap['map']}' does not exist on this file system")
+            print(
+                f"The map '{mmap['map']}' does not exist on this file system")
             continue
 
         if index > 1:
@@ -103,16 +105,20 @@ def main(arguments=None):
         mapMjd = mmap["mjd_obs"]
 
         # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
-        atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
-        psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
+        atlasExps, atlasStats = get_atlas_exposures_covering_map(
+            log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
+        psExps, psStats = get_ps_skycells_covering_map(
+            log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
 
         outputFolder = os.path.dirname(mmap["map"])
         df = pd.DataFrame(atlasExps)
-        df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6, 'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
+        df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6,
+                      'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
         df.rename(columns={"limiting_magnitude": "mag5sig"}, inplace=True)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
-        df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6, 'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
+        df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6,
+                      'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
 
         if len(df.index):
             mask = (df["stacked"] == 1)
@@ -128,8 +134,10 @@ def main(arguments=None):
 
         coverageStats = []
         for rangeDays in [1, 3, 7, 14]:
-            atlasExps, atlasStats = get_atlas_exposures_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
-            psExps, psStats = get_ps_skycells_covering_map(log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+            atlasExps, atlasStats = get_atlas_exposures_covering_map(
+                log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+            psExps, psStats = get_ps_skycells_covering_map(
+                log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
 
             atlasStats["days since event"] = rangeDays
             psStats["days since event"] = rangeDays
@@ -147,8 +155,10 @@ def main(arguments=None):
                 meta = {}
 
             if rangeDays == 14 or True:
-                atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSide=5.46)
-                psPatches = get_patches(log=log, exposures=psExps, pointingSide=0.4)
+                atlasPatches = get_patches(
+                    log=log, exposures=atlasExps, pointingSideRA=5.46, pointingSideDec=5.46)
+                psPatches = get_patches(
+                    log=log, exposures=psExps, pointingSideRA=0.4, pointingSideDec=0.4)
 
                 converter = aitoff(
                     log=log,
@@ -185,7 +195,8 @@ def main(arguments=None):
             header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
         else:
             header = f"# archive map\n"
-        coverageStats = tabulate(coverageStats, headers='keys', tablefmt='psql', showindex=False)
+        coverageStats = tabulate(
+            coverageStats, headers='keys', tablefmt='psql', showindex=False)
         with open(outputFolder + "/map_coverage.txt", "w") as myFile:
             myFile.write(header)
             myFile.write(coverageStats)
@@ -421,14 +432,16 @@ def get_ps_skycells_covering_map(
 def get_patches(
         log,
         exposures,
-        pointingSide):
+        pointingSideRA,
+        pointingSideDec):
     """*Convert the exposures/skycells to matplotlib patches to be added to the plot*
 
     **Key Arguments:**
 
     - `log` -- logger
     - `exposures` -- atlas or panstarrs exposures or skycells
-    - `pointingSide` -- the pointing side in degrees
+    - `pointingSideRa` -- the pointing side in degrees (X-axis - RA)
+    - `pointingSideDec` -- the pointing side in degrees (Y-axis - Dec)
     """
     log.debug('starting the ``get_patches`` function')
 
@@ -442,13 +455,15 @@ def get_patches(
         raDeg = -raDeg
         decDeg = e['decDeg']
 
-        deltaDeg = pointingSide / 2
+        deltaDeg = pointingSideDec / 2
         if decDeg < 0:
             deltaDeg = -deltaDeg
 
-        widthRadTop = np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg + deltaDeg))
-        widthRadBottom = np.deg2rad(pointingSide) / np.cos(np.deg2rad(decDeg - deltaDeg))
-        heightRad = np.deg2rad(pointingSide)
+        widthRadTop = np.deg2rad(pointingSideRA) / \
+            np.cos(np.deg2rad(decDeg + deltaDeg))
+        widthRadBottom = np.deg2rad(
+            pointingSideRA) / np.cos(np.deg2rad(decDeg - deltaDeg))
+        heightRad = np.deg2rad(pointingSideDec)
         llx = -(np.deg2rad(raDeg) - widthRadBottom / 2)
         lly = np.deg2rad(decDeg) - (heightRad / 2)
         ulx = -(np.deg2rad(raDeg) - widthRadTop / 2)

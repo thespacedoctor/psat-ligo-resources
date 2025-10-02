@@ -71,8 +71,10 @@ def main(arguments=None):
     pathToExports = pathToExports.replace("~", home)
 
     create_tables_if_not_exist(log=log, dbConn=dbConn)
-    tableNames, csvContents = read_csv_files(log=log, pathToExports=pathToExports)
-    import_csv_content_to_database(log=log, dbConn=dbConn, tableNames=tableNames, csvContents=csvContents, settings=settings, pastDays=5)
+    tableNames, csvContents = read_csv_files(
+        log=log, pathToExports=pathToExports)
+    import_csv_content_to_database(log=log, dbConn=dbConn, tableNames=tableNames,
+                                   csvContents=csvContents, settings=settings, pastDays=5)
 
     return
 
@@ -121,7 +123,8 @@ def read_csv_files(
                 if "atlas" in d:
                     tableNames.append("exp_atlas")
                 with open(filepath, 'r') as csvFile:
-                    csvReader = csv.DictReader(csvFile, dialect='excel', delimiter=',', quotechar='"')
+                    csvReader = csv.DictReader(
+                        csvFile, dialect='excel', delimiter=',', quotechar='"')
                     dictList = []
                     dictList[:] = [{**d, **stacked} for d in csvReader]
                     csvContents.append(dictList)
@@ -138,13 +141,13 @@ def import_csv_content_to_database(
         csvContents,
         settings,
         pastDays):
-    """*import csv content intp exp_ps and exp_atlas database talbes*
+    """*import csv content into exp_ps and exp_atlas database tables*
 
     **Key Arguments:**
 
     - `log` -- logger
     - `dbConn` -- mysql database connection
-    - `tableNames` -- a list of database tablenames
+    - `tableNames` -- a list of database table names
     - `csvContents` -- a list of the CSV connects (list of dictionaries). List equal in length to `tableNames`
     - `settings` -- the settings dict    
     - `pastDays` -- import only the last N days of exposures  
@@ -185,7 +188,7 @@ def import_csv_content_to_database(
             batchSize=200000,
             dateModified=False,
             dateCreated=False,
-            replace=True,
+            replace=False,
             dbSettings=settings["database settings"]
 
         )
