@@ -317,7 +317,8 @@ def match_exp_to_map_pixels(
         f'exp_{survey}_id', 'mapId', 'ipix']]
 
     print(len(firstIpixCoverage.index))
-
+    print(survey)
+    print(survey)
     firstIpixCoverage = firstIpixCoverage.to_dict('records')
 
     # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
