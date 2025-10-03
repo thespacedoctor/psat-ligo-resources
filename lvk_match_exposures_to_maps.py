@@ -94,7 +94,7 @@ def main(arguments=None):
             # match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps,
             #                         mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atTDOExps,
-                                    mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=3.34096, pointingSideDec=2.22451556, mapDF=mapDF, settings=settings)
+                                    mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps,
                                     mapId=mmap["mapId"], survey="ps", nside=nside, pointingSideRA=0.4, pointingSideDec=0.4, mapDF=mapDF, settings=settings)
 
@@ -291,7 +291,6 @@ def match_exp_to_map_pixels(
     bigList = []
     # 1,2,4,3 IS NOT A BUG ... HEALPY NEEDS THIS ORDER
     bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
-    bigList[:] = [[o, th, f, t] for o, t, th, f in zip(one, two, three, four)]
     tmpDf['corners'] = bigList
 
     ipix = []
@@ -318,7 +317,7 @@ def match_exp_to_map_pixels(
 
     firstIpixCoverage = expMapDf.drop_duplicates(subset=['ipix']).copy()
 
-    if pointingSideDec < 3:
+    if pointingSideDec < 30:
         print(len(firstIpixCoverage.index))
         sys.exit()
 
