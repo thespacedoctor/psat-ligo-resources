@@ -301,7 +301,7 @@ def match_exp_to_map_pixels(
 
     exps.dropna(axis='index', how='any', subset=['ipix'], inplace=True)
     # EXPLODE THE DF TO ONE ROW PER IPIX
-    exps = exps.explode('ipix')
+    exps = exps.explode('ipix').reset_index(drop=True)
 
     from tabulate import tabulate
 
