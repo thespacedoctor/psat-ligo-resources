@@ -304,27 +304,21 @@ def match_exp_to_map_pixels(
     if pointingSideDec < 3:
         print(len(exps.index))
     # EXPLODE THE DF TO ONE ROW PER IPIX
-    exps = exps.explode('ipix').reset_index(drop=True)
+    exps = exps.explode('ipix')
 
-    from tabulate import tabulate
-    print(tabulate(mapDF, headers='keys', tablefmt='psql'))
+    exps['ipix'] = exps['ipix'].astype(int)
+    mapDF['ipix'] = mapDF['ipix'].astype(int)
+
+    print("Exps ipix values:", exps['ipix'].unique())
+    print("MapDF ipix values:", mapDF['ipix'].unique())
 
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
     expMapDf['area'] = pixelArea
 
-    if pointingSideDec < 3:
-        print(len(expMapDf.index))
-
     # SORT BY COLUMN NAME
     expMapDf.sort_values(['mjd'], inplace=True)
 
-    if pointingSideDec < 3:
-        print(len(expMapDf.index))
-
     firstIpixCoverage = expMapDf.drop_duplicates(subset=['ipix']).copy()
-
-    if pointingSideDec < 3:
-        print(len(firstIpixCoverage.index))
 
     # RENAME SOME INDIVIDUALLY
     firstIpixCoverage[f"exp_{survey}_id"] = firstIpixCoverage["expname"]
