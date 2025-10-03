@@ -291,7 +291,6 @@ def match_exp_to_map_pixels(
     bigList = []
     # 1,2,4,3 IS NOT A BUG ... HEALPY NEEDS THIS ORDER
     bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
-    bigList[:] = [[o, t, th, f] for o, t, th, f in zip(one, two, three, four)]
     tmpDf['corners'] = bigList
 
     ipix = []
