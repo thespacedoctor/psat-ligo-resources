@@ -326,7 +326,7 @@ def match_exp_to_map_pixels(
         dateModified=False,
         dateCreated=False,
         batchSize=200000,
-        replace=False,
+        replace=True,
         dbSettings=settings["database settings"]
     )
 
