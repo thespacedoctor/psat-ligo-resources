@@ -167,6 +167,9 @@ def convert_map_to_list_of_dicts(
     skymap.loc[mask, "DISTNORM"] = None
     skymap.loc[mask, "DISTSIGMA"] = None
 
+    from tabulate import tabulate
+    print(tabulate(skymap, headers='keys', tablefmt='psql'))
+
     # REMOVE COLUMN FROM DATA FRAME
     # try:
     #     skymap.drop(columns=['DISTMU', 'DISTSIGMA', 'DISTNORM'], inplace=True)
