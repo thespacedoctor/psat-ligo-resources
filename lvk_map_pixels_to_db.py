@@ -137,7 +137,6 @@ def convert_map_to_list_of_dicts(
 
     from gocart.commonutils import flatten_healpix_map
     import numpy as np
-    import pandas as pd
 
     if not os.path.exists(mapPath):
         log.error(f'map does not exist at path : `{mapPath}`' % locals())
@@ -162,8 +161,17 @@ def convert_map_to_list_of_dicts(
     mask = (skymap["CUMPROB"] <= 0.9)
     skymap = skymap.loc[mask]
 
-    # REPLACE NULL WITH NONE IN skymap
-    skymap = skymap.fillna(value=None)
+    # SET 0 DIST TO NULL
+    mask = (skymap["DISTSIGMA"].isnull())
+    skymap.loc[mask, "DISTMU"] = None
+    skymap.loc[mask, "DISTNORM"] = None
+    skymap.loc[mask, "DISTSIGMA"] = None
+
+    # REMOVE COLUMN FROM DATA FRAME
+    # try:
+    #     skymap.drop(columns=['DISTMU', 'DISTSIGMA', 'DISTNORM'], inplace=True)
+    # except:
+    #     pass
 
     skymap["mapId"] = mapId
     skymap["ipix"] = skymap.index
