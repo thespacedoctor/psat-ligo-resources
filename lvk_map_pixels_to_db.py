@@ -137,6 +137,7 @@ def convert_map_to_list_of_dicts(
 
     from gocart.commonutils import flatten_healpix_map
     import numpy as np
+    import pandas as pd
 
     if not os.path.exists(mapPath):
         log.error(f'map does not exist at path : `{mapPath}`' % locals())
