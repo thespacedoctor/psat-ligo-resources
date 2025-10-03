@@ -306,9 +306,8 @@ def match_exp_to_map_pixels(
     # EXPLODE THE DF TO ONE ROW PER IPIX
     exps = exps.explode('ipix').reset_index(drop=True)
 
-    print(len(exps.index), len(mapDF.index))
-
     from tabulate import tabulate
+    print(tabulate(mapDF, headers='keys', tablefmt='psql'))
 
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
     expMapDf['area'] = pixelArea
