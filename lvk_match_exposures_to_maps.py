@@ -300,8 +300,14 @@ def match_exp_to_map_pixels(
     exps["ipix"] = ipix
 
     exps.dropna(axis='index', how='any', subset=['ipix'], inplace=True)
+
+    if pointingSideDec < 3:
+        print(len(exps.index))
     # EXPLODE THE DF TO ONE ROW PER IPIX
     exps = exps.explode('ipix').reset_index(drop=True)
+
+    if pointingSideDec < 3:
+        print(len(exps.index))
 
     from tabulate import tabulate
 
