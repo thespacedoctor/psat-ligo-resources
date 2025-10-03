@@ -162,12 +162,9 @@ def convert_map_to_list_of_dicts(
     skymap = skymap.loc[mask]
 
     # SET 0 DIST AND NaN TO NULL
+    skymap = skymap.replace({np.nan: None})
     mask = (skymap["DISTSIGMA"].isnull()) | (skymap["DISTSIGMA"].isna())
-    from tabulate import tabulate
-    print(tabulate(skymap.loc[mask], headers='keys', tablefmt='psql'))
     skymap.loc[mask, "DISTMU"] = None
-    skymap.loc[mask, "DISTNORM"] = None
-    skymap.loc[mask, "DISTSIGMA"] = None
 
     # REMOVE COLUMN FROM DATA FRAME
     # try:
