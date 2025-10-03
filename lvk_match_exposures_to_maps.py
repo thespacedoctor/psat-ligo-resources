@@ -309,22 +309,24 @@ def match_exp_to_map_pixels(
     expMapDf['area'] = pixelArea
 
     if pointingSideDec < 3:
-        print(tabulate(expMapDf, headers='keys', tablefmt='psql'))
-        print(pointingSideDec)
+        print(len(expMapDf.index))
 
     # SORT BY COLUMN NAME
     expMapDf.sort_values(['mjd'], inplace=True)
 
+    if pointingSideDec < 3:
+        print(len(expMapDf.index))
+
     firstIpixCoverage = expMapDf.drop_duplicates(subset=['ipix']).copy()
+
+    if pointingSideDec < 3:
+        print(len(firstIpixCoverage.index))
 
     # RENAME SOME INDIVIDUALLY
     firstIpixCoverage[f"exp_{survey}_id"] = firstIpixCoverage["expname"]
     firstIpixCoverage = firstIpixCoverage[[
         f'exp_{survey}_id', 'mapId', 'ipix']]
 
-    print(len(firstIpixCoverage.index))
-    print(survey)
-    print(survey)
     firstIpixCoverage = firstIpixCoverage.to_dict('records')
 
     # USE dbSettings TO ACTIVATE MULTIPROCESSING - INSERT LIST OF DICTIONARIES INTO DATABASE
