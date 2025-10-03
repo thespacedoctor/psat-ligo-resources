@@ -91,8 +91,8 @@ def main(arguments=None):
 
             mapDF = get_the_map_as_healpix_dataframe(
                 log=log, dbConn=dbConn, mapId=mmap["mapId"])
-            # match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps,
-            #                         mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
+            match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps,
+                                    mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atTDOExps,
                                     mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps,
@@ -185,6 +185,8 @@ def get_exposures_in_maps_temporal_window(
     )
     atExps = pd.DataFrame(atExps)
 
+    print(sqlQuery)
+
     sqlQuery = f"""
         SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) and expname  like "05%" order by mjd asc;
     """
@@ -196,6 +198,8 @@ def get_exposures_in_maps_temporal_window(
         quiet=False
     )
     atTDOExps = pd.DataFrame(atTDOExps)
+
+    print(sqlQuery)
 
     sqlQuery = f"""
         SELECT e.primaryId as expname, raDeg, decDeg, stacked, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) order by mjd asc;
