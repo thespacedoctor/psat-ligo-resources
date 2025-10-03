@@ -161,8 +161,8 @@ def convert_map_to_list_of_dicts(
     mask = (skymap["CUMPROB"] <= 0.9)
     skymap = skymap.loc[mask]
 
-    # SET 0 DIST TO NULL
-    mask = (skymap["DISTSIGMA"].isnull())
+    # SET 0 DIST AND NaN TO NULL
+    mask = (skymap["DISTSIGMA"].isnull()) | (skymap["DISTSIGMA"].isna())
     skymap.loc[mask, "DISTMU"] = None
     skymap.loc[mask, "DISTNORM"] = None
     skymap.loc[mask, "DISTSIGMA"] = None
