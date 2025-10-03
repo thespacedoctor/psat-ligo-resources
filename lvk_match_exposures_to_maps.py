@@ -134,7 +134,7 @@ def list_maps_still_to_be_covered(
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
-        select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1 and primaryId = 12045;
+        select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1;
     """
     maps = readquery(
         log=log,
