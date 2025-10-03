@@ -161,9 +161,8 @@ def convert_map_to_list_of_dicts(
     mask = (skymap["CUMPROB"] <= 0.9)
     skymap = skymap.loc[mask]
 
-    # SET 0 DIST TO NULL
-    mask = (skymap["DISTSIGMA"].isnull())
-    skymap.loc[mask, "DISTMU"] = None
+    # REPLACE NaN WITH NONE FOR ALL COLUMNS IN DATA FRAME
+    skymap = skymap.where(pd.notnull(skymap), None)
 
     # REMOVE COLUMN FROM DATA FRAME
     # try:
