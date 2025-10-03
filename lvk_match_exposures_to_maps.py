@@ -306,8 +306,7 @@ def match_exp_to_map_pixels(
     # EXPLODE THE DF TO ONE ROW PER IPIX
     exps = exps.explode('ipix').reset_index(drop=True)
 
-    if pointingSideDec < 3:
-        print(len(exps.index), len(mapDF.index))
+    print(len(exps.index), len(mapDF.index))
 
     from tabulate import tabulate
 
