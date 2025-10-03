@@ -94,7 +94,7 @@ def main(arguments=None):
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps,
                                     mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atTDOExps,
-                                    mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
+                                    mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=3.34096, pointingSideDec=2.22451556, mapDF=mapDF, settings=settings)
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps,
                                     mapId=mmap["mapId"], survey="ps", nside=nside, pointingSideRA=0.4, pointingSideDec=0.4, mapDF=mapDF, settings=settings)
 
@@ -185,8 +185,6 @@ def get_exposures_in_maps_temporal_window(
     )
     atExps = pd.DataFrame(atExps)
 
-    print(sqlQuery)
-
     sqlQuery = f"""
         SELECT primaryId as expname, raDeg, decDeg, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_atlas where mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) and expname  like "05%" order by mjd asc;
     """
@@ -198,8 +196,6 @@ def get_exposures_in_maps_temporal_window(
         quiet=False
     )
     atTDOExps = pd.DataFrame(atTDOExps)
-
-    print(sqlQuery)
 
     sqlQuery = f"""
         SELECT e.primaryId as expname, raDeg, decDeg, stacked, mjd, mjd-{start} as 'mjd_t0' FROM lvk.exp_ps e, lvk.ps1_skycell_map m where e.skycell=m.skycell_id and mjd > {start} and mjd < {start}+{windowDays} and (processed = 0 or mjd > {mjdLimit}) order by mjd asc;
@@ -295,6 +291,7 @@ def match_exp_to_map_pixels(
     bigList = []
     # 1,2,4,3 IS NOT A BUG ... HEALPY NEEDS THIS ORDER
     bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
+    bigList[:] = [[o, t, th, f] for o, t, th, f in zip(one, two, three, four)]
     tmpDf['corners'] = bigList
 
     ipix = []
@@ -320,10 +317,6 @@ def match_exp_to_map_pixels(
     expMapDf.sort_values(['mjd'], inplace=True)
 
     firstIpixCoverage = expMapDf.drop_duplicates(subset=['ipix']).copy()
-
-    if pointingSideDec < 30:
-        print(len(firstIpixCoverage.index))
-        sys.exit()
 
     # RENAME SOME INDIVIDUALLY
     firstIpixCoverage[f"exp_{survey}_id"] = firstIpixCoverage["expname"]
