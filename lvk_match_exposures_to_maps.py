@@ -91,8 +91,8 @@ def main(arguments=None):
 
             mapDF = get_the_map_as_healpix_dataframe(
                 log=log, dbConn=dbConn, mapId=mmap["mapId"])
-            match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps,
-                                    mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
+            # match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps,
+            #                         mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=5.46, pointingSideDec=5.46, mapDF=mapDF, settings=settings)
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atTDOExps,
                                     mapId=mmap["mapId"], survey="atlas", nside=nside, pointingSideRA=3.34096, pointingSideDec=2.22451556, mapDF=mapDF, settings=settings)
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=psExps,
