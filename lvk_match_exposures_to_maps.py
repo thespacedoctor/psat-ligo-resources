@@ -311,8 +311,8 @@ def match_exp_to_map_pixels(
     exps['ipix'] = exps['ipix'].astype(int)
     mapDF['ipix'] = mapDF['ipix'].astype(int)
 
-    print("Exps ipix values:", exps['ipix'].unique())
-    print("MapDF ipix values:", mapDF['ipix'].unique())
+    print("Exps ipix values:", list(exps['ipix'].unique()))
+    print("MapDF ipix values:", list(mapDF['ipix'].unique()))
 
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
     expMapDf['area'] = pixelArea
