@@ -104,18 +104,18 @@ def main(arguments=None):
         percent = (float(index + 1) / float(len(maps))) * 100.
         print(f'{index+1}/{len(maps)} ({percent:1.1f} done)')
 
-    # sqlQuery = f"""update exp_atlas set processed = 1 where processed = 0"""
-    # writequery(
-    #     log=log,
-    #     sqlQuery=sqlQuery,
-    #     dbConn=dbConn
-    # )
-    # sqlQuery = f"""update exp_ps set processed = 1 where processed = 0"""
-    # writequery(
-    #     log=log,
-    #     sqlQuery=sqlQuery,
-    #     dbConn=dbConn
-    # )
+    sqlQuery = f"""update exp_atlas set processed = 1 where processed = 0"""
+    writequery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
+    )
+    sqlQuery = f"""update exp_ps set processed = 1 where processed = 0"""
+    writequery(
+        log=log,
+        sqlQuery=sqlQuery,
+        dbConn=dbConn
+    )
 
     return
 
@@ -134,7 +134,7 @@ def list_maps_still_to_be_covered(
 
     from fundamentals.mysql import readquery
     sqlQuery = f"""
-        select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1 and primaryId = 12045;
+        select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1;
     """
     maps = readquery(
         log=log,
