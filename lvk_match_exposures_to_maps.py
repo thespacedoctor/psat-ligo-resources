@@ -279,11 +279,6 @@ def match_exp_to_map_pixels(
     tmpDf.loc[(tmpDf['raCorner2'] < 0.), 'raCorner2'] = 360. + \
         tmpDf.loc[(tmpDf['raCorner2'] < 0.)]
 
-    if pointingSideDec < 3:
-        from tabulate import tabulate
-        print(tabulate(tmpDf, headers='keys', tablefmt='psql'))
-        sys.exit()
-
     one = hp.ang2vec(tmpDf['raCorner1'].values,
                      tmpDf['decCorner1'].values, lonlat=True)
     two = hp.ang2vec(tmpDf['raCorner2'].values,
@@ -296,6 +291,7 @@ def match_exp_to_map_pixels(
     bigList = []
     # 1,2,4,3 IS NOT A BUG ... HEALPY NEEDS THIS ORDER
     bigList[:] = [[o, t, f, th] for o, t, th, f in zip(one, two, three, four)]
+    bigList[:] = [[o, t, th, f] for o, t, th, f in zip(one, two, three, four)]
     tmpDf['corners'] = bigList
 
     ipix = []
@@ -306,8 +302,6 @@ def match_exp_to_map_pixels(
 
     exps.dropna(axis='index', how='any', subset=['ipix'], inplace=True)
 
-    if pointingSideDec < 3:
-        print(len(exps.index))
     # EXPLODE THE DF TO ONE ROW PER IPIX
     exps = exps.explode('ipix')
 
@@ -316,9 +310,6 @@ def match_exp_to_map_pixels(
     exps['ipix'] = exps['ipix'].astype(int)
     mapDF['ipix'] = mapDF['ipix'].astype(int)
 
-    print("Exps ipix values:", list(exps['ipix'].unique()))
-    print("MapDF ipix values:", list(mapDF['ipix'].unique()))
-
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
     expMapDf['area'] = pixelArea
 
@@ -326,6 +317,10 @@ def match_exp_to_map_pixels(
     expMapDf.sort_values(['mjd'], inplace=True)
 
     firstIpixCoverage = expMapDf.drop_duplicates(subset=['ipix']).copy()
+
+    if pointingSideDec < 3:
+        print(len(firstIpixCoverage.index))
+        sys.exit()
 
     # RENAME SOME INDIVIDUALLY
     firstIpixCoverage[f"exp_{survey}_id"] = firstIpixCoverage["expname"]
