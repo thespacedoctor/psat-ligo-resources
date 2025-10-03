@@ -87,8 +87,6 @@ def main(arguments=None):
 
         if len(atExps.index) or len(psExps.index) or len(atTDOExps.index):
 
-            print(len(atExps.index), len(atTDOExps.index), len(psExps.index))
-
             mapDF = get_the_map_as_healpix_dataframe(
                 log=log, dbConn=dbConn, mapId=mmap["mapId"])
             match_exp_to_map_pixels(log=log, dbConn=dbConn, exps=atExps,
