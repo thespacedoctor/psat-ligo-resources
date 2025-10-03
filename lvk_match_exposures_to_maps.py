@@ -298,21 +298,21 @@ def match_exp_to_map_pixels(
                for c in bigList]
 
     exps["ipix"] = ipix
-    if pointingSideDec < 3:
-        print(ipix)
 
     exps.dropna(axis='index', how='any', subset=['ipix'], inplace=True)
     # EXPLODE THE DF TO ONE ROW PER IPIX
     exps = exps.explode('ipix')
 
     from tabulate import tabulate
-    print(tabulate(exps.head(1000), headers='keys', tablefmt='psql'))
+
+    if pointingSideDec < 3:
+        print(tabulate(exps.head(1000), headers='keys', tablefmt='psql'))
 
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
     expMapDf['area'] = pixelArea
 
-    print(tabulate(expMapDf.head(1000), headers='keys', tablefmt='psql'))
-    print(pointingSideDec)
+    # print(tabulate(expMapDf.head(1000), headers='keys', tablefmt='psql'))
+    # print(pointingSideDec)
 
     # SORT BY COLUMN NAME
     expMapDf.sort_values(['mjd'], inplace=True)
