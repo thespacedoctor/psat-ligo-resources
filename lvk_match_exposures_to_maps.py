@@ -279,6 +279,11 @@ def match_exp_to_map_pixels(
     tmpDf.loc[(tmpDf['raCorner2'] < 0.), 'raCorner2'] = 360. + \
         tmpDf.loc[(tmpDf['raCorner2'] < 0.)]
 
+    if pointingSideDec < 3:
+        from tabulate import tabulate
+        print(tabulate(tmpDf, headers='keys', tablefmt='psql'))
+        sys.exit()
+
     one = hp.ang2vec(tmpDf['raCorner1'].values,
                      tmpDf['decCorner1'].values, lonlat=True)
     two = hp.ang2vec(tmpDf['raCorner2'].values,
