@@ -302,11 +302,6 @@ def match_exp_to_map_pixels(
     # EXPLODE THE DF TO ONE ROW PER IPIX
     exps = exps.explode('ipix')
 
-    exps = exps.dropna(subset=['ipix'])
-    mapDF = mapDF.dropna(subset=['ipix'])
-    exps['ipix'] = exps['ipix'].astype(int)
-    mapDF['ipix'] = mapDF['ipix'].astype(int)
-
     expMapDf = pd.merge(exps, mapDF, how='inner', on=['ipix'])
     expMapDf['area'] = pixelArea
 
