@@ -60,7 +60,7 @@ def main(arguments=None):
         logLevel="DEBUG",
         options_first=False,
         projectName="gocart",
-        defaultSettingsFile=True
+        defaultSettingsFile=True,
     )
     arguments, settings, log, dbConn = su.setup()
 
@@ -76,13 +76,19 @@ def main(arguments=None):
         if arg == "--dbConn":
             dbConn = val
             a["dbConn"] = val
-        log.debug('%s = %s' % (varname, val,))
+        log.debug(
+            "%s = %s"
+            % (
+                varname,
+                val,
+            )
+        )
 
     import pandas as pd
+
     nside = 128
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
-    maps = list_maps_to_be_plotted(
-        dbConn=dbConn, log=log, daysAgo=a["daysAgo"], gid=a["gid"])
+    maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"], gid=a["gid"])
 
     print(f"Generating {len(maps)} x 4 plots")
     count = len(maps)
@@ -91,48 +97,85 @@ def main(arguments=None):
 
         exists = os.path.exists(mmap["map"])
         if not exists:
-            print(
-                f"The map '{mmap['map']}' does not exist on this file system")
+            print(f"The map '{mmap['map']}' does not exist on this file system")
             continue
 
         if index > 1:
             # Cursor up one line and clear line
             sys.stdout.write("\x1b[1A\x1b[2K")
 
-        percent = (float(index) / float(count)) * 100.
-        print(f'{index}/{count} ({percent:1.1f}% done)')
+        percent = (float(index) / float(count)) * 100.0
+        print(f"{index}/{count} ({percent:1.1f}% done)")
 
         mapMjd = mmap["mjd_obs"]
 
         # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
         atlasExps, atlasTDOExps, atlasStats = get_atlas_exposures_covering_map(
-            log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
+            log=log,
+            dbConn=dbConn,
+            mapId=mmap["mapId"],
+            pixelArea=pixelArea,
+            mjdLower=mapMjd,
+            mjdUpper=mapMjd + 14,
+            allSkycells=True,
+        )
         psExps, psStats = get_ps_skycells_covering_map(
-            log=log, dbConn=dbConn, mapId=mmap["mapId"], pixelArea=pixelArea, mjdLower=mapMjd, mjdUpper=mapMjd + 14, allSkycells=True)
+            log=log,
+            dbConn=dbConn,
+            mapId=mmap["mapId"],
+            pixelArea=pixelArea,
+            mjdLower=mapMjd,
+            mjdUpper=mapMjd + 14,
+            allSkycells=True,
+        )
 
         outputFolder = os.path.dirname(mmap["map"])
         df = pd.DataFrame(atlasExps)
         df2 = pd.DataFrame(atlasTDOExps)
         # CONCATENATE
         df = pd.concat([df, df2], ignore_index=True)
-        df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6,
-                      'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
+        df = df.round(
+            {
+                "mjd": 6,
+                "mjd_t0": 6,
+                "limiting_magnitude": 2,
+                "raDeg": 6,
+                "decDeg": 6,
+                "area_90": 5,
+                "prob_90": 5,
+                "distmu_90": 2,
+                "distsigma_90": 2,
+                "distnorm_90": 7,
+            }
+        )
         df.rename(columns={"limiting_magnitude": "mag5sig"}, inplace=True)
         # SORT BY MJD ASCENDING
-        df.sort_values(['mjd'], ascending=[True], inplace=True)
+        df.sort_values(["mjd"], ascending=[True], inplace=True)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
-        df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6,
-                      'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
-        df.sort_values(['mjd'], ascending=[True], inplace=True)
+        df = df.round(
+            {
+                "mjd": 6,
+                "mjd_t0": 6,
+                "limiting_magnitude": 2,
+                "raDeg": 6,
+                "decDeg": 6,
+                "area_90": 5,
+                "prob_90": 5,
+                "distmu_90": 2,
+                "distsigma_90": 2,
+                "distnorm_90": 7,
+            }
+        )
+        df.sort_values(["mjd"], ascending=[True], inplace=True)
 
         if len(df.index):
-            mask = (df["stacked"] == 1)
+            mask = df["stacked"] == 1
             this = df.loc[mask].copy()
-            this.drop(columns=['stacked'], inplace=True)
+            this.drop(columns=["stacked"], inplace=True)
             this.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
             this = df.loc[~mask].copy()
-            this.drop(columns=['stacked'], inplace=True)
+            this.drop(columns=["stacked"], inplace=True)
             this.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
         else:
             df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
@@ -141,9 +184,21 @@ def main(arguments=None):
         coverageStats = []
         for rangeDays in [1, 3, 7, 14]:
             atlasExps, atlasTDOExps, atlasStats = get_atlas_exposures_covering_map(
-                log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+                log=log,
+                dbConn=dbConn,
+                mapId=mmap["mapId"],
+                mjdLower=mapMjd,
+                mjdUpper=mapMjd + rangeDays,
+                pixelArea=pixelArea,
+            )
             psExps, psStats = get_ps_skycells_covering_map(
-                log=log, dbConn=dbConn, mapId=mmap["mapId"], mjdLower=mapMjd, mjdUpper=mapMjd + rangeDays, pixelArea=pixelArea)
+                log=log,
+                dbConn=dbConn,
+                mapId=mmap["mapId"],
+                mjdLower=mapMjd,
+                mjdUpper=mapMjd + rangeDays,
+                pixelArea=pixelArea,
+            )
 
             atlasStats["days since event"] = rangeDays
             psStats["days since event"] = rangeDays
@@ -155,18 +210,17 @@ def main(arguments=None):
             # GRAB META
             try:
                 yamlFilePath = outputFolder + "/meta.yaml"
-                with open(yamlFilePath, 'r') as stream:
+                with open(yamlFilePath, "r") as stream:
                     meta = yaml.safe_load(stream)
             except:
                 meta = {}
 
             if rangeDays == 14 or True:
-                atlasPatches = get_patches(
-                    log=log, exposures=atlasExps, pointingSideRA=5.46, pointingSideDec=5.46)
+                atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSideRA=5.46, pointingSideDec=5.46)
                 atlasTDOPatches = get_patches(
-                    log=log, exposures=atlasTDOExps, pointingSideRA=3.34096, pointingSideDec=2.22451556)
-                psPatches = get_patches(
-                    log=log, exposures=psExps, pointingSideRA=0.4, pointingSideDec=0.4)
+                    log=log, exposures=atlasTDOExps, pointingSideRA=3.34096, pointingSideDec=2.22451556
+                )
+                psPatches = get_patches(log=log, exposures=psExps, pointingSideRA=0.4, pointingSideDec=0.4)
 
                 # MERGE ATLAS PATCHES
                 atlasPatches.extend(atlasTDOPatches)
@@ -180,7 +234,7 @@ def main(arguments=None):
                     meta=meta,
                     patches=atlasPatches,
                     patchesColor="#d33682",
-                    patchesLabel=" ATLAS Exposure"
+                    patchesLabel=" ATLAS Exposure",
                 )
                 converter.convert()
 
@@ -193,21 +247,19 @@ def main(arguments=None):
                     meta=meta,
                     patches=psPatches,
                     patchesColor="#859900",
-                    patchesLabel=" PanSTARRS Skycell"
+                    patchesLabel=" PanSTARRS Skycell",
                 )
                 converter.convert()
 
         coverageStats = pd.DataFrame(coverageStats)
         # SORT BY COLUMN NAME
-        coverageStats.sort_values(['survey', 'days since event'],
-                                  ascending=[True, True], inplace=True)
+        coverageStats.sort_values(["survey", "days since event"], ascending=[True, True], inplace=True)
 
         if "ALERT" in meta:
             header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
         else:
             header = f"# archive map\n"
-        coverageStats = tabulate(
-            coverageStats, headers='keys', tablefmt='psql', showindex=False)
+        coverageStats = tabulate(coverageStats, headers="keys", tablefmt="psql", showindex=False)
         with open(outputFolder + "/map_coverage.txt", "w") as myFile:
             myFile.write(header)
             myFile.write(coverageStats)
@@ -219,11 +271,7 @@ def main(arguments=None):
     return
 
 
-def list_maps_to_be_plotted(
-        dbConn,
-        log,
-        daysAgo=False,
-        gid=False):
+def list_maps_to_be_plotted(dbConn, log, daysAgo=False, gid=False):
     """*Generate a list of maps needing maps to be plotted*
 
     **Key Arguments:**
@@ -233,41 +281,30 @@ def list_maps_to_be_plotted(
     - `daysAgo` -- plot all events within the last 'daysAgo' days
     - ``gid`` -- single out a gravity event to plot
     """
-    log.debug('starting the ``list_maps_to_be_plotted`` function')
+    log.debug("starting the ``list_maps_to_be_plotted`` function")
 
     extra = ""
     if daysAgo and not gid:
         utcnow = datetime.utcnow()
-        mjdnow = Time([utcnow], scale='utc').mjd[0]
+        mjdnow = Time([utcnow], scale="utc").mjd[0]
         extra = f"and mjd_obs > {mjdnow} - {daysAgo}"
 
     if gid:
         extra = f"and superevent_id = '{gid}'"
 
     from fundamentals.mysql import readquery
+
     sqlQuery = f"""
         select primaryId as mapId, map, mjd_obs from alerts where map is not null and significant = 1 {extra};
     """
 
-    maps = readquery(
-        log=log,
-        sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        quiet=False
-    )
+    maps = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn, quiet=False)
 
-    log.debug('completed the ``list_maps_to_be_plotted`` function')
+    log.debug("completed the ``list_maps_to_be_plotted`` function")
     return maps
 
 
-def get_atlas_exposures_covering_map(
-        log,
-        dbConn,
-        mapId,
-        pixelArea,
-        mjdLower,
-        mjdUpper=700000000,
-        allSkycells=False):
+def get_atlas_exposures_covering_map(log, dbConn, mapId, pixelArea, mjdLower, mjdUpper=700000000, allSkycells=False):
     """*Get all of the atlas exposures covering map*
 
     **Key Arguments:**
@@ -279,16 +316,16 @@ def get_atlas_exposures_covering_map(
     - `mjdLower` -- the mjd of the event
     - `mjdUpper` -- return exposures taken before this mjd
     """
-    log.debug('starting the ``get_atlas_exposures_covering_map`` function')
+    log.debug("starting the ``get_atlas_exposures_covering_map`` function")
 
     from fundamentals.mysql import readquery
 
     if allSkycells:
         sqlQuery1 = f"""
-            SELECT expname, m.mjd, m.mjd_t0, filter, exp_time, limiting_magnitude, raDeg, decDeg, area_90, prob_90, distmu_90, distsigma_90, distnorm_90 FROM lvk.exp_atlas_alert_map_matches m, lvk.exp_atlas e  where m.mapId = {mapId} and m.expId=e.primaryId and expname not like "05%" order by m.mjd;
+            SELECT expname, m.mjd, m.mjd_t0, filter, exp_time, limiting_magnitude, raDeg, decDeg, area_90, prob_90, distmu_90, distsigma_90, distnorm_90, obj as tess_id FROM lvk.exp_atlas_alert_map_matches m, lvk.exp_atlas e  where m.mapId = {mapId} and m.expId=e.primaryId and expname not like "05%" order by m.mjd;
         """
         sqlQuery2 = f"""
-            SELECT expname, m.mjd, m.mjd_t0, filter, exp_time, limiting_magnitude, raDeg, decDeg, area_90, prob_90, distmu_90, distsigma_90, distnorm_90 FROM lvk.exp_atlas_alert_map_matches m, lvk.exp_atlas e  where m.mapId = {mapId} and m.expId=e.primaryId  and expname like "05%" order by m.mjd;
+            SELECT expname, m.mjd, m.mjd_t0, filter, exp_time, limiting_magnitude, raDeg, decDeg, area_90, prob_90, distmu_90, distsigma_90, distnorm_90, obj as tess_id FROM lvk.exp_atlas_alert_map_matches m, lvk.exp_atlas e  where m.mapId = {mapId} and m.expId=e.primaryId  and expname like "05%" order by m.mjd;
         """
     else:
         sqlQuery1 = f"""
@@ -330,50 +367,28 @@ def get_atlas_exposures_covering_map(
                 and expname like "05%"
             ORDER BY mjd;
         """
-    atlasExps = readquery(
-        log=log,
-        sqlQuery=sqlQuery1,
-        dbConn=dbConn,
-        quiet=False
-    )
-    atlasTDOExps = readquery(
-        log=log,
-        sqlQuery=sqlQuery2,
-        dbConn=dbConn,
-        quiet=False
-    )
+    atlasExps = readquery(log=log, sqlQuery=sqlQuery1, dbConn=dbConn, quiet=False)
+    atlasTDOExps = readquery(log=log, sqlQuery=sqlQuery2, dbConn=dbConn, quiet=False)
 
     sqlQuery = f"""
         select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_atlas e, alert_pixels_128 p where p.mapId = {mapId} and e.primaryId = p.exp_atlas_id and e.mjd < {mjdUpper} and e.mjd > {mjdLower};
     """
-    pixels = readquery(
-        log=log,
-        sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        quiet=False
-    )
+    pixels = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn, quiet=False)
 
-    if pixels[0]['count'] == 0:
-        pixels[0]['prob'] = 0.
-        pixels[0]['area'] = 0.
+    if pixels[0]["count"] == 0:
+        pixels[0]["prob"] = 0.0
+        pixels[0]["area"] = 0.0
 
     stats = {
         "prob. coverage (%)": float(f"{pixels[0]['prob']:0.2f}"),
         "90% area coverage (squ.deg.)": float(f"{pixels[0]['area']:0.2f}"),
     }
 
-    log.debug('completed the ``get_atlas_exposures_covering_map`` function')
+    log.debug("completed the ``get_atlas_exposures_covering_map`` function")
     return atlasExps, atlasTDOExps, stats
 
 
-def get_ps_skycells_covering_map(
-        log,
-        dbConn,
-        mapId,
-        pixelArea,
-        mjdLower,
-        mjdUpper=700000000,
-        allSkycells=False):
+def get_ps_skycells_covering_map(log, dbConn, mapId, pixelArea, mjdLower, mjdUpper=700000000, allSkycells=False):
     """*Get all of the panstarrs skycells covering map*
 
     **Key Arguments:**
@@ -386,7 +401,7 @@ def get_ps_skycells_covering_map(
     - `mjdUpper` -- return exposures taken before this mjd
     - `allSkycells` -- return all skycells
     """
-    log.debug('starting the ``get_ps_skycells_covering_map`` function')
+    log.debug("starting the ``get_ps_skycells_covering_map`` function")
 
     from fundamentals.mysql import readquery
 
@@ -440,41 +455,27 @@ def get_ps_skycells_covering_map(
             ORDER BY mjd ASC;
         """
 
-    psExps = readquery(
-        log=log,
-        sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        quiet=False
-    )
+    psExps = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn, quiet=False)
 
     sqlQuery = f"""
         select count(*) as count, sum(p.prob)*100 as prob, count(*)*{pixelArea} as area from exp_ps e, ps1_skycell_map s,alert_pixels_128 p where s.skycell_id=e.skycell and e.primaryId = p.exp_ps_id and p.mapId = {mapId} and e.mjd < {mjdUpper} and e.mjd > {mjdLower};
     """
-    pixels = readquery(
-        log=log,
-        sqlQuery=sqlQuery,
-        dbConn=dbConn,
-        quiet=False
-    )
+    pixels = readquery(log=log, sqlQuery=sqlQuery, dbConn=dbConn, quiet=False)
 
-    if pixels[0]['count'] == 0:
-        pixels[0]['prob'] = 0.
-        pixels[0]['area'] = 0.
+    if pixels[0]["count"] == 0:
+        pixels[0]["prob"] = 0.0
+        pixels[0]["area"] = 0.0
 
     stats = {
         "prob. coverage (%)": float(f"{pixels[0]['prob']:0.2f}"),
         "90% area coverage (squ.deg.)": float(f"{pixels[0]['area']:0.2f}"),
     }
 
-    log.debug('completed the ``get_ps_skycells_covering_map`` function')
+    log.debug("completed the ``get_ps_skycells_covering_map`` function")
     return psExps, stats
 
 
-def get_patches(
-        log,
-        exposures,
-        pointingSideRA,
-        pointingSideDec):
+def get_patches(log, exposures, pointingSideRA, pointingSideDec):
     """*Convert the exposures/skycells to matplotlib patches to be added to the plot*
 
     **Key Arguments:**
@@ -484,26 +485,24 @@ def get_patches(
     - `pointingSideRa` -- the pointing side in degrees (X-axis - RA)
     - `pointingSideDec` -- the pointing side in degrees (Y-axis - Dec)
     """
-    log.debug('starting the ``get_patches`` function')
+    log.debug("starting the ``get_patches`` function")
 
     expPatches = []
     for e in exposures:
 
-        raDeg = e['raDeg']
+        raDeg = e["raDeg"]
         raDeg = -raDeg + 180
-        if raDeg > 180.:
+        if raDeg > 180.0:
             raDeg -= 360
         raDeg = -raDeg
-        decDeg = e['decDeg']
+        decDeg = e["decDeg"]
 
         deltaDeg = pointingSideDec / 2
         if decDeg < 0:
             deltaDeg = -deltaDeg
 
-        widthRadTop = np.deg2rad(pointingSideRA) / \
-            np.cos(np.deg2rad(decDeg + deltaDeg))
-        widthRadBottom = np.deg2rad(
-            pointingSideRA) / np.cos(np.deg2rad(decDeg - deltaDeg))
+        widthRadTop = np.deg2rad(pointingSideRA) / np.cos(np.deg2rad(decDeg + deltaDeg))
+        widthRadBottom = np.deg2rad(pointingSideRA) / np.cos(np.deg2rad(decDeg - deltaDeg))
         heightRad = np.deg2rad(pointingSideDec)
         llx = -(np.deg2rad(raDeg) - widthRadBottom / 2)
         lly = np.deg2rad(decDeg) - (heightRad / 2)
@@ -519,13 +518,13 @@ def get_patches(
             (Path.LINETO, [ulx, uly]),
             (Path.LINETO, [urx, ury]),
             (Path.LINETO, [lrx, lry]),
-            (Path.CLOSEPOLY, [llx, lly])
+            (Path.CLOSEPOLY, [llx, lly]),
         ]
         codes, verts = zip(*path_data)
         path = mpath.Path(verts, codes)
         expPatches.append(patches.PathPatch(path))
 
-    log.debug('completed the ``get_patches`` function')
+    log.debug("completed the ``get_patches`` function")
     return expPatches
 
 
@@ -563,9 +562,10 @@ See here for more info on distance parameters: https://arxiv.org/pdf/1605.04242
 
     return content
 
+
 # use the tab-trigger below for new function
 # xt-def-function
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
