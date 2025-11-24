@@ -105,6 +105,8 @@ def plugin(
         alertDict["alert_time"] = alertDict.pop("time_created")
         if "time" in alertDict:
             from datetime import datetime
+            delta = datetime.strptime(alertDict["alert_time"], '%Y-%m-%dT%H:%M:%SZ') - datetime.strptime(
+                    alertDict["time"], '%Y-%m-%dT%H:%M:%S.%fZ')
             try:
                 delta = datetime.strptime(alertDict["alert_time"], '%Y-%m-%dT%H:%M:%SZ') - datetime.strptime(
                     alertDict["time"], '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -112,6 +114,7 @@ def plugin(
             except:
                 pass
             alertDict.pop("time")
+        alertDict["alert_time"] = alertDict["alert_time"].replace("Z", "")
 
     if 'significant' in alertDict:
         if alertDict['significant']:
