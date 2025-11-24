@@ -554,6 +554,8 @@ ATLAS exposures and PS skycells taken within 0-14 days of the gravity event are 
 
 `distnorm_90`: the mean distance normalisation coefficient (Mpc^-2).
 
+`tess_id`: for ATLAS exposures, the tessellation ID of the sky area covered by the exposure.
+
 The distance posterior (probability per distance interval) at a given location is:
 dp(r)/dr = distnorm_90 * Gaussian(distmu_90, distsigma_90)
 
