@@ -16,7 +16,7 @@ Before using this script in a gocart conda environment, you will need to:
 conda install pymysql -c conda-forge
 ```
 
-You will also need to add database credientials to the gocart.yaml file.
+You will also need to add database credentials to the gocart.yaml file.
 
 Usage:
     lvk_match_exposures_to_maps
