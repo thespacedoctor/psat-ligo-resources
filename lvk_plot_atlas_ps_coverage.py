@@ -181,88 +181,88 @@ def main(arguments=None):
             df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
             df.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
 
-        coverageStats = []
-        for rangeDays in [1, 3, 7, 14]:
-            atlasExps, atlasTDOExps, atlasStats = get_atlas_exposures_covering_map(
-                log=log,
-                dbConn=dbConn,
-                mapId=mmap["mapId"],
-                mjdLower=mapMjd,
-                mjdUpper=mapMjd + rangeDays,
-                pixelArea=pixelArea,
-            )
-            psExps, psStats = get_ps_skycells_covering_map(
-                log=log,
-                dbConn=dbConn,
-                mapId=mmap["mapId"],
-                mjdLower=mapMjd,
-                mjdUpper=mapMjd + rangeDays,
-                pixelArea=pixelArea,
-            )
+        # coverageStats = []
+        # for rangeDays in [1, 3, 7, 14]:
+        #     atlasExps, atlasTDOExps, atlasStats = get_atlas_exposures_covering_map(
+        #         log=log,
+        #         dbConn=dbConn,
+        #         mapId=mmap["mapId"],
+        #         mjdLower=mapMjd,
+        #         mjdUpper=mapMjd + rangeDays,
+        #         pixelArea=pixelArea,
+        #     )
+        #     psExps, psStats = get_ps_skycells_covering_map(
+        #         log=log,
+        #         dbConn=dbConn,
+        #         mapId=mmap["mapId"],
+        #         mjdLower=mapMjd,
+        #         mjdUpper=mapMjd + rangeDays,
+        #         pixelArea=pixelArea,
+        #     )
 
-            atlasStats["days since event"] = rangeDays
-            psStats["days since event"] = rangeDays
-            atlasStats["survey"] = "atlas"
-            psStats["survey"] = "panstarrs"
-            coverageStats.append(atlasStats)
-            coverageStats.append(psStats)
+        #     atlasStats["days since event"] = rangeDays
+        #     psStats["days since event"] = rangeDays
+        #     atlasStats["survey"] = "atlas"
+        #     psStats["survey"] = "panstarrs"
+        #     coverageStats.append(atlasStats)
+        #     coverageStats.append(psStats)
 
-            # GRAB META
-            try:
-                yamlFilePath = outputFolder + "/meta.yaml"
-                with open(yamlFilePath, "r") as stream:
-                    meta = yaml.safe_load(stream)
-            except:
-                meta = {}
+        #     # GRAB META
+        #     try:
+        #         yamlFilePath = outputFolder + "/meta.yaml"
+        #         with open(yamlFilePath, "r") as stream:
+        #             meta = yaml.safe_load(stream)
+        #     except:
+        #         meta = {}
 
-            if rangeDays == 14 or True:
-                atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSideRA=5.46, pointingSideDec=5.46)
-                atlasTDOPatches = get_patches(
-                    log=log, exposures=atlasTDOExps, pointingSideRA=3.34096, pointingSideDec=2.22451556
-                )
-                psPatches = get_patches(log=log, exposures=psExps, pointingSideRA=0.4, pointingSideDec=0.4)
+        #     if rangeDays == 14 or True:
+        #         atlasPatches = get_patches(log=log, exposures=atlasExps, pointingSideRA=5.46, pointingSideDec=5.46)
+        #         atlasTDOPatches = get_patches(
+        #             log=log, exposures=atlasTDOExps, pointingSideRA=3.34096, pointingSideDec=2.22451556
+        #         )
+        #         psPatches = get_patches(log=log, exposures=psExps, pointingSideRA=0.4, pointingSideDec=0.4)
 
-                # MERGE ATLAS PATCHES
-                atlasPatches.extend(atlasTDOPatches)
+        #         # MERGE ATLAS PATCHES
+        #         atlasPatches.extend(atlasTDOPatches)
 
-                converter = aitoff(
-                    log=log,
-                    mapPath=mmap["map"],
-                    outputFolder=outputFolder,
-                    settings=settings,
-                    plotName=f"atlas_coverage_{rangeDays}d.png",
-                    meta=meta,
-                    patches=atlasPatches,
-                    patchesColor="#d33682",
-                    patchesLabel=" ATLAS Exposure",
-                )
-                converter.convert()
+        #         converter = aitoff(
+        #             log=log,
+        #             mapPath=mmap["map"],
+        #             outputFolder=outputFolder,
+        #             settings=settings,
+        #             plotName=f"atlas_coverage_{rangeDays}d.png",
+        #             meta=meta,
+        #             patches=atlasPatches,
+        #             patchesColor="#d33682",
+        #             patchesLabel=" ATLAS Exposure",
+        #         )
+        #         converter.convert()
 
-                converter = aitoff(
-                    log=log,
-                    mapPath=mmap["map"],
-                    outputFolder=outputFolder,
-                    settings=settings,
-                    plotName=f"ps_coverage_{rangeDays}d.png",
-                    meta=meta,
-                    patches=psPatches,
-                    patchesColor="#859900",
-                    patchesLabel=" PanSTARRS Skycell",
-                )
-                converter.convert()
+        #         converter = aitoff(
+        #             log=log,
+        #             mapPath=mmap["map"],
+        #             outputFolder=outputFolder,
+        #             settings=settings,
+        #             plotName=f"ps_coverage_{rangeDays}d.png",
+        #             meta=meta,
+        #             patches=psPatches,
+        #             patchesColor="#859900",
+        #             patchesLabel=" PanSTARRS Skycell",
+        #         )
+        #         converter.convert()
 
-        coverageStats = pd.DataFrame(coverageStats)
-        # SORT BY COLUMN NAME
-        coverageStats.sort_values(["survey", "days since event"], ascending=[True, True], inplace=True)
+        # coverageStats = pd.DataFrame(coverageStats)
+        # # SORT BY COLUMN NAME
+        # coverageStats.sort_values(["survey", "days since event"], ascending=[True, True], inplace=True)
 
-        if "ALERT" in meta:
-            header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
-        else:
-            header = f"# archive map\n"
-        coverageStats = tabulate(coverageStats, headers="keys", tablefmt="psql", showindex=False)
-        with open(outputFolder + "/map_coverage.txt", "w") as myFile:
-            myFile.write(header)
-            myFile.write(coverageStats)
+        # if "ALERT" in meta:
+        #     header = f"# {meta['ALERT']['superevent_id']}, {meta['ALERT']['alert_type']} Alert (issued {meta['ALERT']['time_created'].replace('Z','')} UTC)\n"
+        # else:
+        #     header = f"# archive map\n"
+        # coverageStats = tabulate(coverageStats, headers="keys", tablefmt="psql", showindex=False)
+        # with open(outputFolder + "/map_coverage.txt", "w") as myFile:
+        #     myFile.write(header)
+        #     myFile.write(coverageStats)
 
         with open(outputFolder + "/README.txt", "w") as myFile:
             content = readme_content()
