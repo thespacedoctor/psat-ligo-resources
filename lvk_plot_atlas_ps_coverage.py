@@ -153,14 +153,7 @@ def main(arguments=None):
         df.sort_values(["mjd"], ascending=[True], inplace=True)
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
-<<<<<<< HEAD
-        df = df.round({'mjd': 6, 'mjd_t0': 6, 'limiting_magnitude': 2, 'raDeg': 6, 'decDeg': 6,
-                      'area_90': 5, 'prob_90': 5, 'distmu_90': 2, 'distsigma_90': 2, 'distnorm_90': 7})
-        if len(df.index):
-            df.sort_values(['mjd'], ascending=[True], inplace=True)
-        else:
-            print("No PanSTARRS skycells found")
-=======
+
         df = df.round(
             {
                 "mjd": 6,
@@ -175,8 +168,10 @@ def main(arguments=None):
                 "distnorm_90": 7,
             }
         )
-        df.sort_values(["mjd"], ascending=[True], inplace=True)
->>>>>>> 3d9a189aeae87f2c4d6ccc9d3a5aa92c066bb107
+        if len(df.index):
+            df.sort_values(["mjd"], ascending=[True], inplace=True)
+        else:
+            print("No PanSTARRS skycells found")
 
         if len(df.index):
             mask = df["stacked"] == 1
