@@ -89,6 +89,7 @@ def main(arguments=None):
     nside = 128
     pixelArea = float(hp.nside2pixarea(nside, degrees=True))
     maps = list_maps_to_be_plotted(dbConn=dbConn, log=log, daysAgo=a["daysAgo"], gid=a["gid"])
+    print("1")
 
     print(f"Generating {len(maps)} x 4 plots")
     count = len(maps)
@@ -110,6 +111,7 @@ def main(arguments=None):
         mapMjd = mmap["mjd_obs"]
 
         # NOW WRITE OUT ALL EXPOSURES FOR ATLAS AND PS
+        print("2")
         atlasExps, atlasTDOExps, atlasStats = get_atlas_exposures_covering_map(
             log=log,
             dbConn=dbConn,
@@ -119,6 +121,7 @@ def main(arguments=None):
             mjdUpper=mapMjd + 14,
             allSkycells=True,
         )
+        print("3")
         psExps, psStats = get_ps_skycells_covering_map(
             log=log,
             dbConn=dbConn,
@@ -151,6 +154,7 @@ def main(arguments=None):
         df.rename(columns={"limiting_magnitude": "mag5sig"}, inplace=True)
         # SORT BY MJD ASCENDING
         df.sort_values(["mjd"], ascending=[True], inplace=True)
+        print("4")
         df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
         df = pd.DataFrame(psExps)
 
@@ -184,6 +188,7 @@ def main(arguments=None):
         else:
             df.to_csv(outputFolder + "/ps_skycells_stacks.csv", index=False)
             df.to_csv(outputFolder + "/ps_skycells_warps.csv", index=False)
+        print("5")
 
         # coverageStats = []
         # for rangeDays in [1, 3, 7, 14]:
@@ -271,6 +276,7 @@ def main(arguments=None):
         with open(outputFolder + "/README.txt", "w") as myFile:
             content = readme_content()
             myFile.write(content)
+        print("6")
 
     return
 
