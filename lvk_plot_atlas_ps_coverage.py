@@ -150,8 +150,11 @@ def main(arguments=None):
         )
         df.rename(columns={"limiting_magnitude": "mag5sig"}, inplace=True)
         # SORT BY MJD ASCENDING
-        df.sort_values(["mjd"], ascending=[True], inplace=True)
-        df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
+        if len(df.index):
+            df.sort_values(["mjd"], ascending=[True], inplace=True)
+            df.to_csv(outputFolder + "/atlas_exposures.csv", index=False)
+        else:
+            print("No ATLAS exposures found")
         df = pd.DataFrame(psExps)
 
         df = df.round(
