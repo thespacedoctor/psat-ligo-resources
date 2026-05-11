@@ -18,17 +18,19 @@ conda install pymysql -c conda-forge
 You will also need to add database credentials to the gocart.yaml file.
 
 Usage:
-    lvk_plot_atlas_ps_coverage [<daysAgo>]
-    lvk_plot_atlas_ps_coverage -g [<gid>]
+    lvk_plot_atlas_ps_coverage [<daysAgo>] [-S]
+    lvk_plot_atlas_ps_coverage -g <gid> [<pathToTransientCSV>] [-S] 
 
 Options:
     <daysAgo>             only replot events from last N days
     <gid>                 the gravity event ID
+    <pathToTransientCSV>  the path to the transient CSV file
 
     -h, --help            show this help message
     -v, --version         show version
     -s, --settings        the settings file
     -g, --gevent          the ID of a gravity event
+    -S, --nosunmoon       do not plot sun and moon locations on the plot
 """
 ################# GLOBAL IMPORTS ####################
 import sys
@@ -83,6 +85,14 @@ def main(arguments=None):
                 val,
             )
         )
+
+    pathToTransientCSV = a["pathToTransientCSV"]
+
+    nosunmoon = a["nosunmoonFlag"]
+    if nosunmoon:
+        sunmoon=False
+    else:
+        sunmoon=True
 
     import pandas as pd
 
@@ -242,8 +252,9 @@ def main(arguments=None):
                     patches=atlasPatches,
                     patchesColor="#d33682",
                     patchesLabel=" ATLAS Exposure",
+                    pathToTransientCSV=pathToTransientCSV,
                 )
-                converter.convert()
+                converter.convert(sunmoon=sunmoon, sunmoonContour=sunmoon)
 
                 converter = aitoff(
                     log=log,
@@ -255,8 +266,9 @@ def main(arguments=None):
                     patches=psPatches,
                     patchesColor="#859900",
                     patchesLabel=" PanSTARRS Skycell",
+                    pathToTransientCSV=pathToTransientCSV,
                 )
-                converter.convert()
+                converter.convert(sunmoon=sunmoon, sunmoonContour=sunmoon)
 
         coverageStats = pd.DataFrame(coverageStats)
         # SORT BY COLUMN NAME
