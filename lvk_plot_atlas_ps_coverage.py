@@ -18,8 +18,8 @@ conda install pymysql -c conda-forge
 You will also need to add database credentials to the gocart.yaml file.
 
 Usage:
-    lvk_plot_atlas_ps_coverage [<daysAgo>] [-S]
-    lvk_plot_atlas_ps_coverage -g <gid> [<pathToTransientCSV>] [-S] 
+    lvk_plot_atlas_ps_coverage [<daysAgo>] [-S] [-p <pointingsCSV>]
+    lvk_plot_atlas_ps_coverage -g <gid> [<pathToTransientCSV>] [-S] [-p <pointingsCSV>]
 
 Options:
     <daysAgo>             only replot events from last N days
@@ -31,6 +31,7 @@ Options:
     -s, --settings        the settings file
     -g, --gevent          the ID of a gravity event
     -S, --nosunmoon       do not plot sun and moon locations on the plot
+    -p, --pointings <pointingsCSV>   overlay telescope pointing footprints from a CSV
 """
 ################# GLOBAL IMPORTS ####################
 import sys
@@ -38,11 +39,8 @@ import os
 from fundamentals import tools
 from os.path import expanduser
 import healpy as hp
-import numpy as np
 from fundamentals.mysql import writequery
 import yaml
-import matplotlib.path as mpath
-import matplotlib.patches as patches
 from gocart.convert import aitoff
 from astropy.time import Time
 from datetime import datetime
@@ -87,6 +85,7 @@ def main(arguments=None):
         )
 
     pathToTransientCSV = a["pathToTransientCSV"]
+    pathToPointingsCSV = a["pointingsFlag"]
 
     nosunmoon = a["nosunmoonFlag"]
     if nosunmoon:
@@ -253,6 +252,7 @@ def main(arguments=None):
                     patchesColor="#d33682",
                     patchesLabel=" ATLAS Exposure",
                     pathToTransientCSV=pathToTransientCSV,
+                    pathToPointingsCSV=pathToPointingsCSV,
                 )
                 converter.convert(sunmoon=sunmoon, sunmoonContour=sunmoon)
 
@@ -267,6 +267,7 @@ def main(arguments=None):
                     patchesColor="#859900",
                     patchesLabel=" PanSTARRS Skycell",
                     pathToTransientCSV=pathToTransientCSV,
+                    pathToPointingsCSV=pathToPointingsCSV,
                 )
                 converter.convert(sunmoon=sunmoon, sunmoonContour=sunmoon)
 
@@ -503,45 +504,20 @@ def get_patches(log, exposures, pointingSideRA, pointingSideDec):
     - `exposures` -- atlas or panstarrs exposures or skycells
     - `pointingSideRa` -- the pointing side in degrees (X-axis - RA)
     - `pointingSideDec` -- the pointing side in degrees (Y-axis - Dec)
+
+    Note: an exposure whose footprint straddles the RA=0 seam is split into two patches, so the
+    returned list may be longer than `exposures` - do not zip the result against `exposures` by
+    index. The three call sites in this file only pass the result straight into a
+    `PatchCollection`, so this is safe as-is.
     """
     log.debug("starting the ``get_patches`` function")
 
-    expPatches = []
-    for e in exposures:
-
-        raDeg = e["raDeg"]
-        raDeg = -raDeg + 180
-        if raDeg > 180.0:
-            raDeg -= 360
-        raDeg = -raDeg
-        decDeg = e["decDeg"]
-
-        deltaDeg = pointingSideDec / 2
-        if decDeg < 0:
-            deltaDeg = -deltaDeg
-
-        widthRadTop = np.deg2rad(pointingSideRA) / np.cos(np.deg2rad(decDeg + deltaDeg))
-        widthRadBottom = np.deg2rad(pointingSideRA) / np.cos(np.deg2rad(decDeg - deltaDeg))
-        heightRad = np.deg2rad(pointingSideDec)
-        llx = -(np.deg2rad(raDeg) - widthRadBottom / 2)
-        lly = np.deg2rad(decDeg) - (heightRad / 2)
-        ulx = -(np.deg2rad(raDeg) - widthRadTop / 2)
-        uly = np.deg2rad(decDeg) + (heightRad / 2)
-        urx = -(np.deg2rad(raDeg) + widthRadTop / 2)
-        ury = uly
-        lrx = -(np.deg2rad(raDeg) + widthRadBottom / 2)
-        lry = lly
-        Path = mpath.Path
-        path_data = [
-            (Path.MOVETO, [llx, lly]),
-            (Path.LINETO, [ulx, uly]),
-            (Path.LINETO, [urx, ury]),
-            (Path.LINETO, [lrx, lry]),
-            (Path.CLOSEPOLY, [llx, lly]),
-        ]
-        codes, verts = zip(*path_data)
-        path = mpath.Path(verts, codes)
-        expPatches.append(patches.PathPatch(path))
+    from gocart.commonutils import footprint_patches
+    pointings = [{"ra": e["raDeg"], "dec": e["decDeg"]} for e in exposures]
+    expPatches = footprint_patches(
+        log=log, pointings=pointings, shape="rectangle",
+        sizeRA=pointingSideRA, sizeDec=pointingSideDec,
+        spherical=False, splitAtSeam=True)
 
     log.debug("completed the ``get_patches`` function")
     return expPatches
